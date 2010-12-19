@@ -4,22 +4,21 @@
     "http://java.sun.com/dtd/web-app_2_3.dtd">
 
 <web-app>
-  
-  <!-- Servlets -->
-<!-- Servlets -->
-  <servlet>
-    <servlet-name>stockPriceServiceImpl</servlet-name>
-    <servlet-class>com.google.gwt.sample.stockwatcher.server.StockPriceServiceImpl</servlet-class>
-  </servlet>
 
-  <servlet-mapping>
-    <servlet-name>stockPriceServiceImpl</servlet-name>
-    <url-pattern>/inominax/stockPrices</url-pattern>
-  </servlet-mapping>
-  
-  <!-- Default page to serve -->
-  <welcome-file-list>
-    <welcome-file>inominax.html</welcome-file>
-  </welcome-file-list>
+   <!-- Servlets -->
+   <servlet>
+      <servlet-name>inominaxServiceImpl</servlet-name>
+      <servlet-class>zorglux.inominax.server.InominaxServiceImpl</servlet-class>
+   </servlet>
+
+   <servlet-mapping>
+      <servlet-name>inominaxServiceImpl</servlet-name>
+      <url-pattern>/inominax/tokenSets</url-pattern>
+   </servlet-mapping>
+
+   <!-- Default page to serve -->
+   <welcome-file-list>
+      <welcome-file>inominax.html</welcome-file>
+   </welcome-file-list>
 
 </web-app>
