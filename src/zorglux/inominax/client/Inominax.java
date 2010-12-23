@@ -1,6 +1,7 @@
 package zorglux.inominax.client;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -8,6 +9,7 @@ import zorglux.inominax.exception.FunctionnalException;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dev.util.collect.Lists;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
@@ -22,6 +24,10 @@ import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.ValueBoxBase.TextAlignment;
+import com.google.gwt.user.client.ui.HasVerticalAlignment;
+import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.event.dom.client.ChangeEvent;
 
 public class Inominax implements EntryPoint {
 
@@ -30,14 +36,15 @@ public class Inominax implements EntryPoint {
    private final HorizontalPanel addTokenPanel = new HorizontalPanel();
    private final TextBox newTokenTextBox = new TextBox();
    private final Button addTokenButton = new Button("Add");
-   private final List<String> stocks = new ArrayList<String>();
    private final Label errorMessageLabel = new Label();
 
    // services
    private final InominaxServiceAsync inominaxService = GWT.create(InominaxService.class);
-   private ListBox tokensListBox;
-   private ListBox tokensSetDropBox;
-   private VerticalPanel tokensPanel;
+   private final ListBox tokensListBox = new ListBox(true);
+   private final ListBox tokensSetDropBox = new ListBox(false);
+   private final VerticalPanel tokensPanel = new VerticalPanel();
+   private final Button btnRemoveSelected = new Button("remove selected");
+   private final Label lblChooseAList = new Label("Choose a list of tokens");
 
    /**
     * Entry point method.
@@ -46,19 +53,23 @@ public class Inominax implements EntryPoint {
    public void onModuleLoad() {
 
       GWT.log(RootPanel.get().toString(), null);
+      newTokenTextBox.setAlignment(TextAlignment.LEFT);
 
       // Assemble Token panel.
       addTokenPanel.add(newTokenTextBox);
+      newTokenTextBox.setSize("11em", "");
+      addTokenButton.setHeight("25px");
       addTokenPanel.add(addTokenButton);
       addTokenPanel.addStyleName("addTokenPanel");
 
-      tokensSetDropBox = new ListBox(false);
-      initTokensSetNamesDropBox();
-      tokensPanel = new VerticalPanel();
+
+      // load token sets name
+      initTokensSetDropBox();
+
       tokensPanel.setSpacing(4);
 
       // Assemble Tokens listbox panel.
-      tokensListBox = new ListBox(true);
+
       tokensListBox.setWidth("11em");
       tokensListBox.setVisibleItemCount(10);
       VerticalPanel tokensListBoxPanel = new VerticalPanel();
@@ -69,9 +80,27 @@ public class Inominax implements EntryPoint {
       errorMessageLabel.setStyleName("errorMessage");
       errorMessageLabel.setVisible(false);
 
+      tokensPanel.add(lblChooseAList);
+      tokensSetDropBox.addChangeHandler(new ChangeHandler() {
+         @Override
+         public void onChange(ChangeEvent event) {
+            loadTokensOfSelectedTokenSet();
+         }
+      });
+
       tokensPanel.add(tokensSetDropBox);
+      tokensSetDropBox.setWidth("11em");
       tokensPanel.add(addTokenPanel);
       tokensPanel.add(tokensListBoxPanel);
+      btnRemoveSelected.addClickHandler(new ClickHandler() {
+         @Override
+         public void onClick(ClickEvent event) {
+            removeSelectedTokensFromCurrentTokenSet();
+         }
+      });
+
+      tokensListBoxPanel.add(btnRemoveSelected);
+      btnRemoveSelected.setWidth("11em");
       mainPanel.add(errorMessageLabel);
       mainPanel.add(tokensPanel);
 
@@ -98,11 +127,10 @@ public class Inominax implements EntryPoint {
             }
          }
       });
-
    }
 
    private void addToken() {
-      final String token = newTokenTextBox.getText().trim();
+      final String newToken = newTokenTextBox.getText().trim();
 
       // Set up the callback object.
       AsyncCallback<Void> addToTokenSetCallback = new AsyncCallback<Void>() {
@@ -115,17 +143,56 @@ public class Inominax implements EntryPoint {
          }
          @Override
          public void onSuccess(Void result) {
-            int selectedIndex = tokensSetDropBox.getSelectedIndex();
-            String tokenSetName = tokensSetDropBox.getItemText(selectedIndex);
-            loadTokensOf(tokenSetName);
+            loadTokensOfSelectedTokenSet();
          }
       };
       // call inominaxService
-      inominaxService.addToTokenSet("Nain", new String[] { token }, addToTokenSetCallback);
+      inominaxService.addToTokenSet(selectedTokenSet(), new String[] { newToken }, addToTokenSetCallback);
       newTokenTextBox.setFocus(true);
    }
 
-   private void initTokensSetNamesDropBox() {
+   private void loadTokensOfSelectedTokenSet() {
+      loadTokensOf(selectedTokenSet());
+   }
+
+   private void removeSelectedTokensFromCurrentTokenSet() {
+      final String selectedTokensSetName = selectedTokenSet();
+      List<Integer> selectedTokensIndexes = new ArrayList<Integer>();
+      List<String> selectedTokens = new ArrayList<String>();
+      for (int i = 0; i < tokensListBox.getItemCount(); i++) {
+         if (tokensListBox.isItemSelected(i)) {
+            selectedTokens.add(tokensListBox.getValue(i));
+            selectedTokensIndexes.add(i);
+            // tokensListBox.removeItem(i);
+         }
+      }
+      GWT.log("selectedTokens=" + selectedTokens);
+
+      // Set up the callback object.
+      AsyncCallback<Void> removeFromTokenSetCallback = new AsyncCallback<Void>() {
+         @Override
+         public void onFailure(Throwable caught) {
+            if (caught instanceof FunctionnalException) {
+               Window.alert(caught.getMessage());
+            }
+
+         }
+         @Override
+         public void onSuccess(Void result) {
+            // refresh current token set
+            loadTokensOf(selectedTokensSetName);
+         }
+      };
+      // call inominaxService
+      inominaxService.removeFromTokenSet(selectedTokensSetName, selectedTokens.toArray(new String[0]), removeFromTokenSetCallback);
+   }
+
+   private String selectedTokenSet() {
+      return tokensSetDropBox.getValue(tokensSetDropBox.getSelectedIndex());
+   }
+
+   private void initTokensSetDropBox() {
+      GWT.log("initializing getTokenSetsNamesCallback");
       // Set up the callback object.
       AsyncCallback<List<String>> getTokenSetsNamesCallback = new AsyncCallback<List<String>>() {
          @Override
@@ -165,5 +232,4 @@ public class Inominax implements EntryPoint {
       // call inominaxService
       inominaxService.getTokensOfSet(tokenSetName, loadTokensOfCallback);
    }
-
 }

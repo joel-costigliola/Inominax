@@ -7,6 +7,7 @@ import static com.google.appengine.repackaged.com.google.common.collect.Sets.new
 import java.util.List;
 import java.util.Set;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 import zorglux.inominax.client.InominaxService;
@@ -69,6 +70,7 @@ public class InominaxServiceImpl extends RemoteServiceServlet implements Inomina
    @Override
    public void removeFromTokenSet(String tokenSetName, String... tokens) {
       if (tokenSetExists(tokenSetName)) {
+         GWT.log("removing tokens " + tokens + " from " + tokenSetName);
          findTokenSetByName(tokenSetName).removeTokens(tokens);
       }
    }
