@@ -10,7 +10,7 @@ public class TokenSet {
    private Set<String> tokens;
 
    public TokenSet() {
-      super();
+      this("");
    }
 
    public TokenSet(String name) {

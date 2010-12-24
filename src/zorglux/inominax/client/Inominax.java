@@ -53,14 +53,6 @@ public class Inominax implements EntryPoint {
    public void onModuleLoad() {
 
       GWT.log(RootPanel.get().toString(), null);
-      newTokenTextBox.setAlignment(TextAlignment.LEFT);
-
-      // Assemble Token panel.
-      addTokenPanel.add(newTokenTextBox);
-      newTokenTextBox.setSize("11em", "");
-      addTokenButton.setHeight("25px");
-      addTokenPanel.add(addTokenButton);
-      addTokenPanel.addStyleName("addTokenPanel");
 
 
       // load token sets name
@@ -71,41 +63,32 @@ public class Inominax implements EntryPoint {
       // Assemble Tokens listbox panel.
 
       tokensListBox.setWidth("11em");
-      tokensListBox.setVisibleItemCount(10);
+      tokensListBox.setVisibleItemCount(20);
       VerticalPanel tokensListBoxPanel = new VerticalPanel();
       tokensListBoxPanel.setSpacing(4);
-      tokensListBoxPanel.add(tokensListBox);
-
-      // Assemble Main panel.
-      errorMessageLabel.setStyleName("errorMessage");
-      errorMessageLabel.setVisible(false);
-
-      tokensPanel.add(lblChooseAList);
+      tokensListBoxPanel.add(lblChooseAList);
+      lblChooseAList.setWidth("");
+      tokensListBoxPanel.add(tokensSetDropBox);
       tokensSetDropBox.addChangeHandler(new ChangeHandler() {
          @Override
          public void onChange(ChangeEvent event) {
             loadTokensOfSelectedTokenSet();
          }
       });
-
-      tokensPanel.add(tokensSetDropBox);
       tokensSetDropBox.setWidth("11em");
-      tokensPanel.add(addTokenPanel);
-      tokensPanel.add(tokensListBoxPanel);
-      btnRemoveSelected.addClickHandler(new ClickHandler() {
-         @Override
-         public void onClick(ClickEvent event) {
-            removeSelectedTokensFromCurrentTokenSet();
-         }
-      });
+      newTokenTextBox.setAlignment(TextAlignment.LEFT);
+      tokensListBoxPanel.add(addTokenPanel);
+      addTokenPanel.setWidth("11em");
 
-      tokensListBoxPanel.add(btnRemoveSelected);
-      btnRemoveSelected.setWidth("11em");
-      mainPanel.add(errorMessageLabel);
-      mainPanel.add(tokensPanel);
-
-      // Associate the Main panel with the HTML host page.
-      RootPanel.get("inominaX").add(mainPanel);
+      // Assemble Token panel.
+      addTokenPanel.add(newTokenTextBox);
+      addTokenPanel.setCellVerticalAlignment(newTokenTextBox, HasVerticalAlignment.ALIGN_MIDDLE);
+      addTokenPanel.setCellWidth(newTokenTextBox, "11em");
+      newTokenTextBox.setSize("8em", "");
+      addTokenButton.setSize("3em", "25px");
+      addTokenPanel.add(addTokenButton);
+      addTokenPanel.setCellVerticalAlignment(addTokenButton, HasVerticalAlignment.ALIGN_MIDDLE);
+      addTokenPanel.addStyleName("addTokenPanel");
 
       // Move cursor focus to the input box.
       newTokenTextBox.setFocus(true);
@@ -127,6 +110,26 @@ public class Inominax implements EntryPoint {
             }
          }
       });
+      tokensListBoxPanel.add(tokensListBox);
+
+      // Assemble Main panel.
+      errorMessageLabel.setStyleName("errorMessage");
+      errorMessageLabel.setVisible(false);
+      tokensPanel.add(tokensListBoxPanel);
+      btnRemoveSelected.addClickHandler(new ClickHandler() {
+         @Override
+         public void onClick(ClickEvent event) {
+            removeSelectedTokensFromCurrentTokenSet();
+         }
+      });
+
+      tokensListBoxPanel.add(btnRemoveSelected);
+      btnRemoveSelected.setWidth("11em");
+      mainPanel.add(errorMessageLabel);
+      mainPanel.add(tokensPanel);
+
+      // Associate the Main panel with the HTML host page.
+      RootPanel.get("inominaX").add(mainPanel);
    }
 
    private void addToken() {
