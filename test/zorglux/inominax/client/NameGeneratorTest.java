@@ -12,12 +12,12 @@ public class NameGeneratorTest {
 
    @Before
    public void setup() {
-      nameGenerator = new NameGenerator();
       nameGenerator.setMinNumberOfTokensInName(2);
       nameGenerator.setMaxNumberOfTokensInName(3);
       // basic TokenSet
       TokenSet tokenSet = new TokenSet();
       tokenSet.addToken("lae", "il", "mar", "sel", "fel", "fin", "iel", "gad", "del", "sin", "rin");
+      nameGenerator = new NameGenerator();
       nameGenerator.useTokenSet(tokenSet);
    }
 

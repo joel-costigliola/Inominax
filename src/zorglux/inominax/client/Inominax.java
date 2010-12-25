@@ -28,6 +28,7 @@ import com.google.gwt.user.client.ui.ValueBoxBase.TextAlignment;
 import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.user.client.ui.IntegerBox;
 
 public class Inominax implements EntryPoint {
 
@@ -36,7 +37,6 @@ public class Inominax implements EntryPoint {
    private final HorizontalPanel addTokenPanel = new HorizontalPanel();
    private final TextBox newTokenTextBox = new TextBox();
    private final Button addTokenButton = new Button("Add");
-   private final Label errorMessageLabel = new Label();
 
    // services
    private final InominaxServiceAsync inominaxService = GWT.create(InominaxService.class);
@@ -44,7 +44,16 @@ public class Inominax implements EntryPoint {
    private final ListBox tokensSetDropBox = new ListBox(false);
    private final VerticalPanel tokensPanel = new VerticalPanel();
    private final Button btnRemoveSelected = new Button("remove selected");
-   private final Label lblChooseAList = new Label("Choose a list of tokens");
+   private final Label chooseTokenSetLabel = new Label("Choose a list of tokens");
+   private final VerticalPanel nameGeneratorPanel = new VerticalPanel();
+   private final Label minTokensLabel = new Label("min tokens");
+   private final Button generateNamesButton = new Button("Generate names");
+   private final HorizontalPanel minTokensPanel = new HorizontalPanel();
+   private final IntegerBox minTokensBox = new IntegerBox();
+   private final HorizontalPanel maxTokensPanel = new HorizontalPanel();
+   private final Label maxTokensLabel = new Label("max tokens");
+   private final IntegerBox maxTokensBox = new IntegerBox();
+   private final ListBox generatedNamesListBox = new ListBox(true);
 
    /**
     * Entry point method.
@@ -52,7 +61,8 @@ public class Inominax implements EntryPoint {
    @Override
    public void onModuleLoad() {
 
-      GWT.log(RootPanel.get().toString(), null);
+      RootPanel rootPanel = RootPanel.get();
+      GWT.log(rootPanel.toString(), null);
 
 
       // load token sets name
@@ -66,8 +76,8 @@ public class Inominax implements EntryPoint {
       tokensListBox.setVisibleItemCount(20);
       VerticalPanel tokensListBoxPanel = new VerticalPanel();
       tokensListBoxPanel.setSpacing(4);
-      tokensListBoxPanel.add(lblChooseAList);
-      lblChooseAList.setWidth("");
+      tokensListBoxPanel.add(chooseTokenSetLabel);
+      chooseTokenSetLabel.setWidth("");
       tokensListBoxPanel.add(tokensSetDropBox);
       tokensSetDropBox.addChangeHandler(new ChangeHandler() {
          @Override
@@ -111,11 +121,8 @@ public class Inominax implements EntryPoint {
          }
       });
       tokensListBoxPanel.add(tokensListBox);
-
-      // Assemble Main panel.
-      errorMessageLabel.setStyleName("errorMessage");
-      errorMessageLabel.setVisible(false);
       tokensPanel.add(tokensListBoxPanel);
+      btnRemoveSelected.setText("Remove selected");
       btnRemoveSelected.addClickHandler(new ClickHandler() {
          @Override
          public void onClick(ClickEvent event) {
@@ -125,8 +132,49 @@ public class Inominax implements EntryPoint {
 
       tokensListBoxPanel.add(btnRemoveSelected);
       btnRemoveSelected.setWidth("11em");
-      mainPanel.add(errorMessageLabel);
       mainPanel.add(tokensPanel);
+      mainPanel.add(nameGeneratorPanel);
+      generateNamesButton.addClickHandler(new ClickHandler() {
+         @Override
+         public void onClick(ClickEvent event) {
+            List<String> tokens = new ArrayList<String>(tokensListBox.getItemCount());
+            for (int i = 0; i < tokensListBox.getItemCount(); i++) {
+               tokens.add(tokensListBox.getValue(i));
+            }
+            NameGenerator nameGenerator = new NameGenerator(minTokensBox.getValue(), maxTokensBox.getValue(), tokens);
+            Set<String> generatedNames = nameGenerator.generateNames(10);
+            generatedNamesListBox.clear();
+            int i = 0;
+            for (String generatedName : generatedNames) {
+               generatedNamesListBox.addItem(generatedName, generatedName);
+               i++;
+            }
+         }
+      });
+      generateNamesButton.setText("Generate names");
+
+      nameGeneratorPanel.add(generateNamesButton);
+
+      nameGeneratorPanel.add(minTokensPanel);
+      minTokensPanel.add(minTokensLabel);
+      minTokensLabel.setWidth("90px");
+      minTokensBox.setText("2");
+
+      minTokensPanel.add(minTokensBox);
+      minTokensBox.setWidth("50px");
+
+      nameGeneratorPanel.add(maxTokensPanel);
+
+      maxTokensPanel.add(maxTokensLabel);
+      maxTokensLabel.setWidth("90px");
+      maxTokensBox.setText("5");
+
+      maxTokensPanel.add(maxTokensBox);
+      maxTokensBox.setWidth("50px");
+      generatedNamesListBox.setVisibleItemCount(20);
+
+      nameGeneratorPanel.add(generatedNamesListBox);
+      generatedNamesListBox.setWidth("11em");
 
       // Associate the Main panel with the HTML host page.
       RootPanel.get("inominaX").add(mainPanel);

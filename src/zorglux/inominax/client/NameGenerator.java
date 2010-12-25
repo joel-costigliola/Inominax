@@ -1,9 +1,9 @@
 package zorglux.inominax.client;
 
-import static com.google.gwt.dev.util.collect.Lists.create;
 import static java.lang.Math.random;
 import static java.lang.Math.round;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -15,6 +15,16 @@ public class NameGenerator {
    private int minNumberOfTokensInName = 2;
    private int maxNumberOfTokensInName = 5;
    private List<String> tokens;
+
+   public NameGenerator(int minNumberOfTokensInName, int maxNumberOfTokensInName, List<String> tokens) {
+      super();
+      this.minNumberOfTokensInName = minNumberOfTokensInName;
+      this.maxNumberOfTokensInName = maxNumberOfTokensInName;
+      this.tokens = tokens;
+   }
+
+   public NameGenerator() {
+   }
 
    public String generateName() {
       long numberOfTokensInName = randomNumberOfTokens();
@@ -55,6 +65,6 @@ public class NameGenerator {
    }
 
    public void useTokenSet(TokenSet tokenSet) {
-      tokens = create(tokenSet.getTokens());
+      tokens = new ArrayList<String>(tokenSet.getTokens());
    }
 }
