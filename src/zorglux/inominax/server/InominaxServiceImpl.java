@@ -1,27 +1,37 @@
 package zorglux.inominax.server;
 
-import static com.google.appengine.repackaged.com.google.common.collect.Lists.newArrayList;
-import static com.google.appengine.repackaged.com.google.common.collect.Lists.newArrayListWithCapacity;
-import static com.google.appengine.repackaged.com.google.common.collect.Sets.newHashSet;
+import static java.util.Arrays.asList;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 import zorglux.inominax.client.InominaxService;
 import zorglux.inominax.shared.TokenSet;
 
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+
 @SuppressWarnings("serial")
 public class InominaxServiceImpl extends RemoteServiceServlet implements InominaxService {
 
-   private final List<TokenSet> tokenSets = newArrayList(new TokenSet("Elfe"), new TokenSet("Nain"), new TokenSet("Orc"));
+   private final List<TokenSet> tokenSets = initDefaultTokenSets();
+
+   private List<TokenSet> initDefaultTokenSets() {
+      TokenSet elvesTokenset = new TokenSet("Elfe");
+      elvesTokenset.addToken("lae", "il", "mar", "sel", "fel", "fin", "iel", "gad", "del", "sin", "rin", "las", "gal", "ald", "ael", "din", "jad", "el", "ga", "la", "dri", "el", "ol");
+      TokenSet dwarfTokenSet = new TokenSet("Nain");
+      dwarfTokenSet.addToken("zak", "zok", "zek", "kar", "kor", "rok", "rak", "grim", "rek", "gra", "gru", "gre", "drak", "dak", "da", "du", "do", "gur", "hel", "ga", "gu", "go", "re", "ra", "ro", "bal", "bol", "ba", "bo", "bar", "bor", "bur", "son", "gir");
+      TokenSet humanTokenSet = new TokenSet("Humain");
+      humanTokenSet.addToken("bo", "ris", "ma", "ri", "drak", "jo", "kim", "joa", "mir", "ro", "a", "ra", "gorn", "sel", "rik", "drik", "jon", "gal", "bal", "bol", "ba", "bo", "del", "sin", "rin");
+      return asList(elvesTokenset, dwarfTokenSet, humanTokenSet);
+   }
 
    @Override
    public List<String> getTokenSetsNames() {
       List<TokenSet> allTokenSets = getAllTokenSets();
-      List<String> tokenSetsNames = newArrayListWithCapacity(allTokenSets.size());
+      List<String> tokenSetsNames = new ArrayList<String>(allTokenSets.size());
       for (TokenSet tokenSet : allTokenSets) {
          tokenSetsNames.add(tokenSet.getName());
       }
@@ -47,7 +57,7 @@ public class InominaxServiceImpl extends RemoteServiceServlet implements Inomina
          return findTokenSetByName(name).getTokens();
       }
       // return empty set if we can't find a tokenset corresponding to the given name
-      return newHashSet();
+      return new HashSet<String>();
    }
 
    private TokenSet findTokenSetByName(String name) {

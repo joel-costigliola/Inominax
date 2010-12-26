@@ -54,6 +54,10 @@ public class Inominax implements EntryPoint {
    private final Label maxTokensLabel = new Label("max tokens");
    private final IntegerBox maxTokensBox = new IntegerBox();
    private final ListBox generatedNamesListBox = new ListBox(true);
+   private final HorizontalPanel numberOfNamesToGeneratePanel = new HorizontalPanel();
+   private final Label numberOfNamesToGenerateLabel = new Label("nb names");
+   private final IntegerBox numberOfNamesToGenerateBox = new IntegerBox();
+   private final Label nameGenerationLabel = new Label("Name generation params");
 
    /**
     * Entry point method.
@@ -69,16 +73,9 @@ public class Inominax implements EntryPoint {
       initTokensSetDropBox();
 
       tokensPanel.setSpacing(4);
-
-      // Assemble Tokens listbox panel.
-
-      tokensListBox.setWidth("11em");
-      tokensListBox.setVisibleItemCount(20);
-      VerticalPanel tokensListBoxPanel = new VerticalPanel();
-      tokensListBoxPanel.setSpacing(4);
-      tokensListBoxPanel.add(chooseTokenSetLabel);
+      tokensPanel.add(chooseTokenSetLabel);
       chooseTokenSetLabel.setWidth("");
-      tokensListBoxPanel.add(tokensSetDropBox);
+      tokensPanel.add(tokensSetDropBox);
       tokensSetDropBox.addChangeHandler(new ChangeHandler() {
          @Override
          public void onChange(ChangeEvent event) {
@@ -87,7 +84,7 @@ public class Inominax implements EntryPoint {
       });
       tokensSetDropBox.setWidth("11em");
       newTokenTextBox.setAlignment(TextAlignment.LEFT);
-      tokensListBoxPanel.add(addTokenPanel);
+      tokensPanel.add(addTokenPanel);
       addTokenPanel.setWidth("11em");
 
       // Assemble Token panel.
@@ -120,8 +117,13 @@ public class Inominax implements EntryPoint {
             }
          }
       });
-      tokensListBoxPanel.add(tokensListBox);
-      tokensPanel.add(tokensListBoxPanel);
+      tokensPanel.add(tokensListBox);
+
+      // Assemble Tokens listbox panel.
+
+      tokensListBox.setWidth("11em");
+      tokensListBox.setVisibleItemCount(20);
+      tokensPanel.add(btnRemoveSelected);
       btnRemoveSelected.setText("Remove selected");
       btnRemoveSelected.addClickHandler(new ClickHandler() {
          @Override
@@ -129,31 +131,23 @@ public class Inominax implements EntryPoint {
             removeSelectedTokensFromCurrentTokenSet();
          }
       });
-
-      tokensListBoxPanel.add(btnRemoveSelected);
       btnRemoveSelected.setWidth("11em");
       mainPanel.add(tokensPanel);
+      tokensPanel.setWidth("13em");
+      nameGeneratorPanel.setSpacing(4);
       mainPanel.add(nameGeneratorPanel);
-      generateNamesButton.addClickHandler(new ClickHandler() {
-         @Override
-         public void onClick(ClickEvent event) {
-            List<String> tokens = new ArrayList<String>(tokensListBox.getItemCount());
-            for (int i = 0; i < tokensListBox.getItemCount(); i++) {
-               tokens.add(tokensListBox.getValue(i));
-            }
-            NameGenerator nameGenerator = new NameGenerator(minTokensBox.getValue(), maxTokensBox.getValue(), tokens);
-            Set<String> generatedNames = nameGenerator.generateNames(10);
-            generatedNamesListBox.clear();
-            int i = 0;
-            for (String generatedName : generatedNames) {
-               generatedNamesListBox.addItem(generatedName, generatedName);
-               i++;
-            }
-         }
-      });
-      generateNamesButton.setText("Generate names");
 
-      nameGeneratorPanel.add(generateNamesButton);
+      nameGeneratorPanel.add(nameGenerationLabel);
+      nameGenerationLabel.setWidth("");
+
+      nameGeneratorPanel.add(numberOfNamesToGeneratePanel);
+
+      numberOfNamesToGeneratePanel.add(numberOfNamesToGenerateLabel);
+      numberOfNamesToGenerateLabel.setWidth("90px");
+      numberOfNamesToGenerateBox.setText("20");
+
+      numberOfNamesToGeneratePanel.add(numberOfNamesToGenerateBox);
+      numberOfNamesToGenerateBox.setWidth("50px");
 
       nameGeneratorPanel.add(minTokensPanel);
       minTokensPanel.add(minTokensLabel);
@@ -167,14 +161,35 @@ public class Inominax implements EntryPoint {
 
       maxTokensPanel.add(maxTokensLabel);
       maxTokensLabel.setWidth("90px");
-      maxTokensBox.setText("5");
+      maxTokensBox.setText("4");
 
       maxTokensPanel.add(maxTokensBox);
       maxTokensBox.setWidth("50px");
+      generateNamesButton.addClickHandler(new ClickHandler() {
+         @Override
+         public void onClick(ClickEvent event) {
+            List<String> tokens = new ArrayList<String>(tokensListBox.getItemCount());
+            for (int i = 0; i < tokensListBox.getItemCount(); i++) {
+               tokens.add(tokensListBox.getValue(i));
+            }
+            NameGenerator nameGenerator = new NameGenerator(minTokensBox.getValue(), maxTokensBox.getValue(), tokens);
+
+            Set<String> generatedNames = nameGenerator.generateNames(numberOfNamesToGenerateBox.getValue());
+            generatedNamesListBox.clear();
+            int i = 0;
+            for (String generatedName : generatedNames) {
+               generatedNamesListBox.addItem(generatedName, generatedName);
+               i++;
+            }
+         }
+      });
+      generateNamesButton.setText("Generate names");
+
+      nameGeneratorPanel.add(generateNamesButton);
       generatedNamesListBox.setVisibleItemCount(20);
 
       nameGeneratorPanel.add(generatedNamesListBox);
-      generatedNamesListBox.setWidth("11em");
+      generatedNamesListBox.setWidth("15em");
 
       // Associate the Main panel with the HTML host page.
       RootPanel.get("inominaX").add(mainPanel);
@@ -257,6 +272,7 @@ public class Inominax implements EntryPoint {
             for (String tokenSetName : tokenSetsNames) {
                tokensSetDropBox.addItem(tokenSetName);
             }
+            loadTokensOfSelectedTokenSet();
          }
       };
       // call inominaxService
