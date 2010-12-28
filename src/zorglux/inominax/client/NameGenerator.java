@@ -1,5 +1,6 @@
 package zorglux.inominax.client;
 
+import static com.google.appengine.repackaged.com.google.common.base.StringUtil.isEmptyOrWhitespace;
 import static java.lang.Math.random;
 import static java.lang.Math.round;
 
@@ -14,11 +15,14 @@ public class NameGenerator {
 
    private int minNumberOfTokensInName = 2;
    private int maxNumberOfTokensInName = 5;
+   private String generatedNameStart = "";
+   private String generatedNameEnd = "";
+   private String mandatoryStringInGeneratedName = "";
    private List<String> tokens;
 
    public NameGenerator(int minNumberOfTokensInName, int maxNumberOfTokensInName, List<String> tokens) {
       super();
-      this.minNumberOfTokensInName = minNumberOfTokensInName;
+      setMinNumberOfTokensInName(minNumberOfTokensInName);
       this.maxNumberOfTokensInName = maxNumberOfTokensInName;
       this.tokens = tokens;
    }
@@ -27,11 +31,42 @@ public class NameGenerator {
    }
 
    public String generateName() {
-      long numberOfTokensInName = randomNumberOfTokens();
       String generatedName = "";
-      for (int i = 0; i < numberOfTokensInName; i++) {
-         generatedName += randomToken();
+      int numberOfRandomTokensInName = randomNumberOfTokens(); // at least = 1
+      if (startOfGeneratedNameIsSet()) {
+         numberOfRandomTokensInName--;
+         generatedName = generatedNameStart;
       }
+      if (numberOfRandomTokensInName == 0) {
+         return uppercaseFirstLetter(generatedName);
+      }
+
+      if (endOfGeneratedNameIsSet()) {
+         numberOfRandomTokensInName--;
+      }
+      if (numberOfRandomTokensInName == 0) {
+         return uppercaseFirstLetter(generatedName + generatedNameEnd);
+      }
+
+      // we have at least one token to define.
+      int indexOfMandatoryString = 0;
+      if (mandatoryStringInGeneratedNameIsSet()) {
+         indexOfMandatoryString = randomIntBetween(0, numberOfRandomTokensInName - 1);
+      }
+      for (int i = 0; i < numberOfRandomTokensInName; i++) {
+         // replace a randomtoken by mandatory string at a random index
+         if (mandatoryStringInGeneratedNameIsSet() && i == indexOfMandatoryString) {
+            generatedName += mandatoryStringInGeneratedName;
+         } else {
+            generatedName += randomToken();
+         }
+      }
+
+      // set end of name if requested
+      if (endOfGeneratedNameIsSet()) {
+         generatedName += generatedNameEnd;
+      }
+
       return uppercaseFirstLetter(generatedName);
    }
 
@@ -48,15 +83,35 @@ public class NameGenerator {
    }
 
    public void setMaxNumberOfTokensInName(int maxNumberOfTokensInName) {
-      this.maxNumberOfTokensInName = maxNumberOfTokensInName;
+      if (maxNumberOfTokensInName < minNumberOfTokensInName) {
+         this.maxNumberOfTokensInName = minNumberOfTokensInName;
+      } else {
+         this.maxNumberOfTokensInName = maxNumberOfTokensInName;
+      }
    }
 
    public void setMinNumberOfTokensInName(int minNumberOfTokensInName) {
-      this.minNumberOfTokensInName = minNumberOfTokensInName;
+      if (minNumberOfTokensInName < 1) {
+         this.minNumberOfTokensInName = 1;
+      } else {
+         this.minNumberOfTokensInName = minNumberOfTokensInName;
+      }
+   }
+
+   public int getMinNumberOfTokensInName() {
+      return minNumberOfTokensInName;
+   }
+
+   public int getMaxNumberOfTokensInName() {
+      return maxNumberOfTokensInName;
    }
 
    private int randomNumberOfTokens() {
-      return (int) round(random() * (maxNumberOfTokensInName - minNumberOfTokensInName) + minNumberOfTokensInName);
+      return randomIntBetween(minNumberOfTokensInName, maxNumberOfTokensInName);
+   }
+
+   private int randomIntBetween(int min, int max) {
+      return (int) round(random() * (max - min) + min);
    }
 
    private String randomToken() {
@@ -67,4 +122,33 @@ public class NameGenerator {
    public void useTokenSet(TokenSet tokenSet) {
       tokens = new ArrayList<String>(tokenSet.getTokens());
    }
+
+   public void generatedNameMustStartsWith(String startOfName) {
+      generatedNameStart = startOfName;
+   }
+
+   public void generatedNameMustEndsWith(String endOfName) {
+      generatedNameEnd = endOfName;
+   }
+
+   public void generatedNameMustContain(String stringInName) {
+      mandatoryStringInGeneratedName = stringInName;
+   }
+
+   public void setTokens(List<String> tokens) {
+      this.tokens = tokens;
+   }
+
+   private boolean startOfGeneratedNameIsSet() {
+      return !isEmptyOrWhitespace(generatedNameStart);
+   }
+
+   private boolean endOfGeneratedNameIsSet() {
+      return !isEmptyOrWhitespace(generatedNameEnd);
+   }
+
+   private boolean mandatoryStringInGeneratedNameIsSet() {
+      return !isEmptyOrWhitespace(mandatoryStringInGeneratedName);
+   }
+
 }
