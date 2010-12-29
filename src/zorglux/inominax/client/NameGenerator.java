@@ -1,6 +1,5 @@
 package zorglux.inominax.client;
 
-import static com.google.appengine.repackaged.com.google.common.base.StringUtil.isEmptyOrWhitespace;
 import static java.lang.Math.random;
 import static java.lang.Math.round;
 
@@ -127,7 +126,7 @@ public class NameGenerator {
       generatedNameStart = startOfName;
    }
 
-   public void generatedNameMustEndsWith(String endOfName) {
+   public void generatedNameMustEndWith(String endOfName) {
       generatedNameEnd = endOfName;
    }
 
@@ -140,15 +139,27 @@ public class NameGenerator {
    }
 
    private boolean startOfGeneratedNameIsSet() {
-      return !isEmptyOrWhitespace(generatedNameStart);
+      return !isEmptyOrBlank(generatedNameStart);
    }
 
    private boolean endOfGeneratedNameIsSet() {
-      return !isEmptyOrWhitespace(generatedNameEnd);
+      return !isEmptyOrBlank(generatedNameEnd);
    }
 
    private boolean mandatoryStringInGeneratedNameIsSet() {
-      return !isEmptyOrWhitespace(mandatoryStringInGeneratedName);
+      return !isEmptyOrNull(mandatoryStringInGeneratedName);
+   }
+
+   private boolean isEmptyOrNull(String token) {
+      if (token == null) return true;
+      if (token.isEmpty()) return true;
+      return false;
+   }
+
+   private boolean isEmptyOrBlank(String token) {
+      if (token == null) return true;
+      if (token.trim().isEmpty()) return true;
+      return false;
    }
 
 }

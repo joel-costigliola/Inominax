@@ -29,9 +29,11 @@ import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.user.client.ui.IntegerBox;
+import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 
 public class Inominax implements EntryPoint {
 
+   private static final String STARTS_ENDS_CONTAINS_LABEL_SIZE = "90px";
    // UI
    private final HorizontalPanel mainPanel = new HorizontalPanel();
    private final HorizontalPanel addTokenPanel = new HorizontalPanel();
@@ -46,18 +48,28 @@ public class Inominax implements EntryPoint {
    private final Button btnRemoveSelected = new Button("remove selected");
    private final Label chooseTokenSetLabel = new Label("Choose a list of tokens");
    private final VerticalPanel nameGeneratorPanel = new VerticalPanel();
-   private final Label minTokensLabel = new Label("min tokens");
+   private final Label minTokensLabel = new Label("min ");
    private final Button generateNamesButton = new Button("Generate names");
-   private final HorizontalPanel minTokensPanel = new HorizontalPanel();
+   private final HorizontalPanel minMaxTokensPanel = new HorizontalPanel();
    private final IntegerBox minTokensBox = new IntegerBox();
-   private final HorizontalPanel maxTokensPanel = new HorizontalPanel();
-   private final Label maxTokensLabel = new Label("max tokens");
+   private final HorizontalPanel startsWithTokenPanel = new HorizontalPanel();
+   private final Label maxTokensLabel = new Label("max");
    private final IntegerBox maxTokensBox = new IntegerBox();
    private final ListBox generatedNamesListBox = new ListBox(true);
    private final HorizontalPanel numberOfNamesToGeneratePanel = new HorizontalPanel();
    private final Label numberOfNamesToGenerateLabel = new Label("nb names");
    private final IntegerBox numberOfNamesToGenerateBox = new IntegerBox();
    private final Label nameGenerationLabel = new Label("Name generation params");
+   private final Label numberOfTokensLabel = new Label("number of tokens in name");
+   private final Label startsWithLabel = new Label("- starts with ");
+   private final TextBox startsWithTextBox = new TextBox();
+   private final HorizontalPanel endsWithPanel = new HorizontalPanel();
+   private final Label endsWithLabel = new Label("- ends with ");
+   private final TextBox endsWithTextBox = new TextBox();
+   private final HorizontalPanel containsPanel = new HorizontalPanel();
+   private final Label containsLabel = new Label("- contains");
+   private final TextBox containsTextBox = new TextBox();
+   private final Label nameConstraintsLabel = new Label("generated names must ...");
 
    /**
     * Entry point method.
@@ -66,6 +78,7 @@ public class Inominax implements EntryPoint {
    public void onModuleLoad() {
 
       RootPanel rootPanel = RootPanel.get();
+      rootPanel.setSize("500px", "700px");
       GWT.log(rootPanel.toString(), null);
 
 
@@ -122,7 +135,7 @@ public class Inominax implements EntryPoint {
       // Assemble Tokens listbox panel.
 
       tokensListBox.setWidth("11em");
-      tokensListBox.setVisibleItemCount(20);
+      tokensListBox.setVisibleItemCount(25);
       tokensPanel.add(btnRemoveSelected);
       btnRemoveSelected.setText("Remove selected");
       btnRemoveSelected.addClickHandler(new ClickHandler() {
@@ -143,28 +156,72 @@ public class Inominax implements EntryPoint {
       nameGeneratorPanel.add(numberOfNamesToGeneratePanel);
 
       numberOfNamesToGeneratePanel.add(numberOfNamesToGenerateLabel);
+      numberOfNamesToGeneratePanel.setCellVerticalAlignment(numberOfNamesToGenerateLabel, HasVerticalAlignment.ALIGN_MIDDLE);
       numberOfNamesToGenerateLabel.setWidth("90px");
       numberOfNamesToGenerateBox.setText("20");
 
       numberOfNamesToGeneratePanel.add(numberOfNamesToGenerateBox);
       numberOfNamesToGenerateBox.setWidth("50px");
 
-      nameGeneratorPanel.add(minTokensPanel);
-      minTokensPanel.add(minTokensLabel);
-      minTokensLabel.setWidth("90px");
+      nameGeneratorPanel.add(numberOfTokensLabel);
+
+      nameGeneratorPanel.add(minMaxTokensPanel);
+      nameGeneratorPanel.setCellVerticalAlignment(minMaxTokensPanel, HasVerticalAlignment.ALIGN_MIDDLE);
+      minTokensLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_RIGHT);
+      minTokensLabel.setDirectionEstimator(true);
+      minMaxTokensPanel.add(minTokensLabel);
+      minMaxTokensPanel.setCellVerticalAlignment(minTokensLabel, HasVerticalAlignment.ALIGN_MIDDLE);
+      minTokensLabel.setWidth("40px");
       minTokensBox.setText("2");
 
-      minTokensPanel.add(minTokensBox);
-      minTokensBox.setWidth("50px");
-
-      nameGeneratorPanel.add(maxTokensPanel);
-
-      maxTokensPanel.add(maxTokensLabel);
-      maxTokensLabel.setWidth("90px");
+      minMaxTokensPanel.add(minTokensBox);
+      minMaxTokensPanel.setCellVerticalAlignment(minTokensBox, HasVerticalAlignment.ALIGN_MIDDLE);
+      minTokensBox.setWidth("30px");
+      maxTokensLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_RIGHT);
+      maxTokensLabel.setDirectionEstimator(true);
+      minMaxTokensPanel.add(maxTokensLabel);
+      minMaxTokensPanel.setCellVerticalAlignment(maxTokensLabel, HasVerticalAlignment.ALIGN_MIDDLE);
+      maxTokensLabel.setWidth("40px");
+      minMaxTokensPanel.add(maxTokensBox);
+      minMaxTokensPanel.setCellVerticalAlignment(maxTokensBox, HasVerticalAlignment.ALIGN_MIDDLE);
       maxTokensBox.setText("4");
+      maxTokensBox.setWidth("30px");
+      nameConstraintsLabel.setWordWrap(false);
 
-      maxTokensPanel.add(maxTokensBox);
-      maxTokensBox.setWidth("50px");
+      nameGeneratorPanel.add(nameConstraintsLabel);
+
+      nameGeneratorPanel.add(startsWithTokenPanel);
+      startsWithLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_LEFT);
+      startsWithTokenPanel.add(startsWithLabel);
+      startsWithLabel.setWidth(STARTS_ENDS_CONTAINS_LABEL_SIZE);
+      startsWithTokenPanel.setCellVerticalAlignment(startsWithLabel, HasVerticalAlignment.ALIGN_MIDDLE);
+
+      startsWithTokenPanel.add(startsWithTextBox);
+      startsWithTokenPanel.setCellVerticalAlignment(startsWithTextBox, HasVerticalAlignment.ALIGN_MIDDLE);
+      startsWithTextBox.setWidth("50px");
+
+      nameGeneratorPanel.add(endsWithPanel);
+      endsWithPanel.setWidth("");
+      endsWithLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_LEFT);
+
+      endsWithPanel.add(endsWithLabel);
+      endsWithPanel.setCellVerticalAlignment(endsWithLabel, HasVerticalAlignment.ALIGN_MIDDLE);
+      endsWithLabel.setWidth(STARTS_ENDS_CONTAINS_LABEL_SIZE);
+
+      endsWithPanel.add(endsWithTextBox);
+      endsWithPanel.setCellVerticalAlignment(endsWithTextBox, HasVerticalAlignment.ALIGN_MIDDLE);
+      endsWithTextBox.setWidth("50px");
+
+      nameGeneratorPanel.add(containsPanel);
+      containsLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_LEFT);
+
+      containsPanel.add(containsLabel);
+      containsLabel.setWidth(STARTS_ENDS_CONTAINS_LABEL_SIZE);
+      containsPanel.setCellVerticalAlignment(containsLabel, HasVerticalAlignment.ALIGN_MIDDLE);
+
+      containsPanel.add(containsTextBox);
+      containsPanel.setCellVerticalAlignment(containsTextBox, HasVerticalAlignment.ALIGN_MIDDLE);
+      containsTextBox.setWidth("50px");
       generateNamesButton.addClickHandler(new ClickHandler() {
          @Override
          public void onClick(ClickEvent event) {
@@ -173,7 +230,15 @@ public class Inominax implements EntryPoint {
                tokens.add(tokensListBox.getValue(i));
             }
             NameGenerator nameGenerator = new NameGenerator(minTokensBox.getValue(), maxTokensBox.getValue(), tokens);
-
+            if (!startsWithTextBox.getValue().isEmpty()) {
+               nameGenerator.generatedNameMustStartsWith(startsWithTextBox.getValue());
+            }
+            if (!endsWithTextBox.getValue().isEmpty()) {
+               nameGenerator.generatedNameMustEndWith(endsWithTextBox.getValue());
+            }
+            if (!containsTextBox.getValue().isEmpty()) {
+               nameGenerator.generatedNameMustContain(containsTextBox.getValue());
+            }
             Set<String> generatedNames = nameGenerator.generateNames(numberOfNamesToGenerateBox.getValue());
             generatedNamesListBox.clear();
             int i = 0;

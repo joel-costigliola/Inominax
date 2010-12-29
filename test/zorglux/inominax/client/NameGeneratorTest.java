@@ -40,7 +40,7 @@ public class NameGeneratorTest {
 
    @Test
    public void generateNameEndingWith() {
-      nameGenerator.generatedNameMustEndsWith("oto");
+      nameGenerator.generatedNameMustEndWith("oto");
       for (int i = 0; i < 100; i++) {
          assertThat(nameGenerator.generateName()).endsWith("oto");
       }
@@ -60,7 +60,7 @@ public class NameGeneratorTest {
       nameGenerator.generatedNameMustStartsWith(startOfName);
       nameGenerator.generatedNameMustContain("mm");
       String endOfName = "zz";
-      nameGenerator.generatedNameMustEndsWith(endOfName);
+      nameGenerator.generatedNameMustEndWith(endOfName);
       nameGenerator.setMaxNumberOfTokensInName(2);
       for (int i = 0; i < 100; i++) {
          String generatedName = nameGenerator.generateName();
