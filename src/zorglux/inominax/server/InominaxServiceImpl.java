@@ -1,6 +1,6 @@
 package zorglux.inominax.server;
 
-import static java.util.Arrays.asList;
+import static zorglux.inominax.exception.FunctionnalException.throwFunctionnalExceptionIfFalse;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import zorglux.inominax.client.InominaxService;
+import zorglux.inominax.exception.FunctionnalException;
 import zorglux.inominax.shared.TokenSet;
 
 import com.google.gwt.core.client.GWT;
@@ -16,16 +17,19 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 @SuppressWarnings("serial")
 public class InominaxServiceImpl extends RemoteServiceServlet implements InominaxService {
 
-   private final List<TokenSet> tokenSets = initDefaultTokenSets();
+   private List<TokenSet> tokenSets = null;
 
-   private List<TokenSet> initDefaultTokenSets() {
+   private void initDefaultTokenSets() {
       TokenSet elvesTokenset = new TokenSet("Elfe");
       elvesTokenset.addToken("lae", "il", "mar", "sel", "fel", "fin", "iel", "gad", "del", "sin", "rin", "las", "gal", "ald", "ael", "din", "jad", "el", "ga", "la", "dri", "el", "ol");
       TokenSet dwarfTokenSet = new TokenSet("Nain");
       dwarfTokenSet.addToken("zak", "zok", "zek", "kar", "kor", "rok", "rak", "grim", "rek", "gra", "gru", "gre", "drak", "dak", "da", "du", "do", "gur", "hel", "ga", "gu", "go", "re", "ra", "ro", "bal", "bol", "ba", "bo", "bar", "bor", "bur", "son", "gir");
       TokenSet humanTokenSet = new TokenSet("Humain");
       humanTokenSet.addToken("bo", "ris", "ma", "ri", "drak", "jo", "kim", "joa", "mir", "ro", "a", "ra", "gorn", "sel", "rik", "drik", "jon", "gal", "bal", "bol", "ba", "bo", "del", "sin", "rin");
-      return asList(elvesTokenset, dwarfTokenSet, humanTokenSet);
+      tokenSets = new ArrayList<TokenSet>();
+      tokenSets.add(elvesTokenset);
+      tokenSets.add(dwarfTokenSet);
+      tokenSets.add(humanTokenSet);
    }
 
    @Override
@@ -41,8 +45,10 @@ public class InominaxServiceImpl extends RemoteServiceServlet implements Inomina
    @Override
    public void createTokenSet(String tokenSetName) {
       if (checkTokenSetNameIsAvailable(tokenSetName)) {
-         tokenSets.add(new TokenSet(tokenSetName));
+         TokenSet newTokenSet = new TokenSet(tokenSetName);
+         tokenSets.add(newTokenSet);
       }
+      GWT.log("create token set " + tokenSetName);
    }
 
    @Override
@@ -86,6 +92,9 @@ public class InominaxServiceImpl extends RemoteServiceServlet implements Inomina
    }
 
    private List<TokenSet> getAllTokenSets() {
+      if (tokenSets == null) {
+         initDefaultTokenSets();
+      }
       return tokenSets;
    }
 
@@ -95,6 +104,13 @@ public class InominaxServiceImpl extends RemoteServiceServlet implements Inomina
 
    private boolean tokenSetExists(String tokenSetName) {
       return getTokenSetsNames().contains(tokenSetName);
+   }
+
+   @Override
+   public void renameTokenSet(String oldName, String newName) {
+      throwFunctionnalExceptionIfFalse(checkTokenSetNameIsAvailable(newName), "name already used : " + newName);
+      throwFunctionnalExceptionIfFalse(tokenSetExists(oldName), "no token list with name : " + oldName);
+      findTokenSetByName(oldName).setName(newName);
    }
 
 }

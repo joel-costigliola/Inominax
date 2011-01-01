@@ -13,6 +13,7 @@ public interface InominaxService extends RemoteService {
    List<String> getTokenSetsNames();
    void createTokenSet(String name);
    void removeTokenSet(String name);
+   void renameTokenSet(String oldName, String newName);
 
    // token management
    Set<String> getTokensOfSet(String name);

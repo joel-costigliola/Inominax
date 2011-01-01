@@ -11,6 +11,7 @@ public interface InominaxServiceAsync {
    public void getTokenSetsNames(AsyncCallback<List<String>> callback);
    public void createTokenSet(String name, AsyncCallback<Void> callback);
    public void removeTokenSet(String name, AsyncCallback<Void> callback);
+   void renameTokenSet(String oldName, String newName, AsyncCallback<Void> callback);
 
    // token management
    public void getTokensOfSet(String name, AsyncCallback<Set<String>> callback);

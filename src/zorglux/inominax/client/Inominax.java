@@ -1,7 +1,6 @@
 package zorglux.inominax.client;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -9,31 +8,34 @@ import zorglux.inominax.exception.FunctionnalException;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.dev.util.collect.Lists;
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyPressEvent;
 import com.google.gwt.event.dom.client.KeyPressHandler;
+import com.google.gwt.event.logical.shared.CloseEvent;
+import com.google.gwt.event.logical.shared.CloseHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.HasHorizontalAlignment;
+import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.IntegerBox;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.ValueBoxBase.TextAlignment;
-import com.google.gwt.user.client.ui.HasVerticalAlignment;
-import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.user.client.ui.IntegerBox;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment;
+import com.google.gwt.user.client.ui.VerticalPanel;
 
-public class Inominax implements EntryPoint {
+public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
 
    private static final String STARTS_ENDS_CONTAINS_LABEL_SIZE = "90px";
+   private Inominax me;
    // UI
    private final HorizontalPanel mainPanel = new HorizontalPanel();
    private final HorizontalPanel addTokenPanel = new HorizontalPanel();
@@ -70,20 +72,21 @@ public class Inominax implements EntryPoint {
    private final Label containsLabel = new Label("- contains");
    private final TextBox containsTextBox = new TextBox();
    private final Label nameConstraintsLabel = new Label("generated names must ...");
+   private final Button newTokenListButton = new Button("New button");
 
    /**
     * Entry point method.
     */
    @Override
    public void onModuleLoad() {
+      me = this;
 
       RootPanel rootPanel = RootPanel.get();
       rootPanel.setSize("500px", "700px");
       GWT.log(rootPanel.toString(), null);
 
-
       // load token sets name
-      initTokensSetDropBox();
+      loadTokensSetDropBox();
 
       tokensPanel.setSpacing(4);
       tokensPanel.add(chooseTokenSetLabel);
@@ -130,6 +133,7 @@ public class Inominax implements EntryPoint {
             }
          }
       });
+
       tokensPanel.add(tokensListBox);
 
       // Assemble Tokens listbox panel.
@@ -147,6 +151,22 @@ public class Inominax implements EntryPoint {
       btnRemoveSelected.setWidth("11em");
       mainPanel.add(tokensPanel);
       tokensPanel.setWidth("13em");
+      newTokenListButton.addClickHandler(new ClickHandler() {
+         private NewTokenSetDialogBox newTokenSetDialogBox;
+
+         @Override
+         public void onClick(ClickEvent event) {
+            newTokenSetDialogBox = new NewTokenSetDialogBox(inominaxService);
+            newTokenSetDialogBox.addCloseHandler(me);
+            newTokenSetDialogBox.center();
+            newTokenSetDialogBox.show();
+            newTokenSetDialogBox.focusNewTokenSetTextBox();
+         }
+      });
+      newTokenListButton.setText("New list of tokens ..");
+
+      tokensPanel.add(newTokenListButton);
+      newTokenListButton.setWidth("11em");
       nameGeneratorPanel.setSpacing(4);
       mainPanel.add(nameGeneratorPanel);
 
@@ -322,7 +342,7 @@ public class Inominax implements EntryPoint {
       return tokensSetDropBox.getValue(tokensSetDropBox.getSelectedIndex());
    }
 
-   private void initTokensSetDropBox() {
+   public void loadTokensSetDropBox() {
       GWT.log("initializing getTokenSetsNamesCallback");
       // Set up the callback object.
       AsyncCallback<List<String>> getTokenSetsNamesCallback = new AsyncCallback<List<String>>() {
@@ -334,6 +354,7 @@ public class Inominax implements EntryPoint {
          }
          @Override
          public void onSuccess(List<String> tokenSetsNames) {
+            tokensSetDropBox.clear();
             for (String tokenSetName : tokenSetsNames) {
                tokensSetDropBox.addItem(tokenSetName);
             }
@@ -363,5 +384,11 @@ public class Inominax implements EntryPoint {
       };
       // call inominaxService
       inominaxService.getTokensOfSet(tokenSetName, loadTokensOfCallback);
+   }
+
+   @Override
+   public void onClose(CloseEvent<PopupPanel> event) {
+      // only one popup : newTokenSetDialogBox, thus we know what to do.
+      loadTokensSetDropBox();
    }
 }

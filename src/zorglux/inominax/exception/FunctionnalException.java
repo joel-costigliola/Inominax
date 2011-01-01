@@ -20,11 +20,21 @@ public class FunctionnalException extends RuntimeException implements Serializab
    public FunctionnalException(Throwable cause) {
       super(cause);
    }
-   
+
    public static void throwFunctionnalExceptionIfNull(Object objectToTestForNull, String descriptionOfObject) {
       if (objectToTestForNull == null) {
          throw new FunctionnalException("Expected a non null" + descriptionOfObject);
       }
    }
-   
+
+   public static void throwFunctionnalExceptionIfTrue(boolean expression, String message) {
+      if (expression) {
+         throw new FunctionnalException(message);
+      }
+   }
+
+   public static void throwFunctionnalExceptionIfFalse(boolean expression, String message) {
+      throwFunctionnalExceptionIfTrue(!expression, message);
+   }
+
 }

@@ -47,4 +47,9 @@ public class TokenSet {
       }
    }
 
+   @Override
+   public String toString() {
+      return name;
+   }
+
 }
