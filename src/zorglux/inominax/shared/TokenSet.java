@@ -1,10 +1,13 @@
 package zorglux.inominax.shared;
 
 
+import java.io.Serializable;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class TokenSet {
+public class TokenSet implements Serializable {
+
+   private static final long serialVersionUID = 8401658275213004116L;
 
    private String name;
    private Set<String> tokens;

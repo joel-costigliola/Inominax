@@ -72,7 +72,7 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
    private final Label containsLabel = new Label("- contains");
    private final TextBox containsTextBox = new TextBox();
    private final Label nameConstraintsLabel = new Label("generated names must ...");
-   private final Button newTokenListButton = new Button("New button");
+   private final Button manageTokenSetButton = new Button();
 
    /**
     * Entry point method.
@@ -85,8 +85,6 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       rootPanel.setSize("500px", "700px");
       GWT.log(rootPanel.toString(), null);
 
-      // load token sets name
-      loadTokensSetDropBox();
 
       tokensPanel.setSpacing(4);
       tokensPanel.add(chooseTokenSetLabel);
@@ -102,6 +100,8 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       newTokenTextBox.setAlignment(TextAlignment.LEFT);
       tokensPanel.add(addTokenPanel);
       addTokenPanel.setWidth("11em");
+      // load token sets name
+      loadTokensSetDropBox();
 
       // Assemble Token panel.
       addTokenPanel.add(newTokenTextBox);
@@ -151,7 +151,7 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       btnRemoveSelected.setWidth("11em");
       mainPanel.add(tokensPanel);
       tokensPanel.setWidth("13em");
-      newTokenListButton.addClickHandler(new ClickHandler() {
+      manageTokenSetButton.addClickHandler(new ClickHandler() {
          private NewTokenSetDialogBox newTokenSetDialogBox;
 
          @Override
@@ -163,10 +163,10 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
             newTokenSetDialogBox.focusNewTokenSetTextBox();
          }
       });
-      newTokenListButton.setText("New list of tokens ..");
+      manageTokenSetButton.setText("Manage list of tokens");
 
-      tokensPanel.add(newTokenListButton);
-      newTokenListButton.setWidth("11em");
+      tokensPanel.add(manageTokenSetButton);
+      manageTokenSetButton.setWidth("11em");
       nameGeneratorPanel.setSpacing(4);
       mainPanel.add(nameGeneratorPanel);
 

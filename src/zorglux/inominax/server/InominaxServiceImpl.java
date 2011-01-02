@@ -3,12 +3,12 @@ package zorglux.inominax.server;
 import static zorglux.inominax.exception.FunctionnalException.throwFunctionnalExceptionIfFalse;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import zorglux.inominax.client.InominaxService;
-import zorglux.inominax.exception.FunctionnalException;
 import zorglux.inominax.shared.TokenSet;
 
 import com.google.gwt.core.client.GWT;
@@ -17,7 +17,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 @SuppressWarnings("serial")
 public class InominaxServiceImpl extends RemoteServiceServlet implements InominaxService {
 
-   private List<TokenSet> tokenSets = null;
+   private List<TokenSet> tokenSets = null; // TODO TokenSetRepository
 
    private void initDefaultTokenSets() {
       TokenSet elvesTokenset = new TokenSet("Elfe");
@@ -39,16 +39,17 @@ public class InominaxServiceImpl extends RemoteServiceServlet implements Inomina
       for (TokenSet tokenSet : allTokenSets) {
          tokenSetsNames.add(tokenSet.getName());
       }
+      Collections.sort(tokenSetsNames);
       return tokenSetsNames;
    }
 
    @Override
-   public void createTokenSet(String tokenSetName) {
-      if (checkTokenSetNameIsAvailable(tokenSetName)) {
-         TokenSet newTokenSet = new TokenSet(tokenSetName);
-         tokenSets.add(newTokenSet);
-      }
+   public TokenSet createTokenSet(String tokenSetName) {
+      throwFunctionnalExceptionIfFalse(checkTokenSetNameIsAvailable(tokenSetName), "name already used : " + tokenSetName);
+      TokenSet newTokenSet = new TokenSet(tokenSetName);
+      tokenSets.add(newTokenSet);
       GWT.log("create token set " + tokenSetName);
+      return newTokenSet;
    }
 
    @Override
@@ -59,18 +60,14 @@ public class InominaxServiceImpl extends RemoteServiceServlet implements Inomina
    // token management
    @Override
    public Set<String> getTokensOfSet(String name) {
-      if (tokenSetExists(name)) {
-         return findTokenSetByName(name).getTokens();
-      }
+      if (tokenSetExists(name)) { return findTokenSetByName(name).getTokens(); }
       // return empty set if we can't find a tokenset corresponding to the given name
       return new HashSet<String>();
    }
 
    private TokenSet findTokenSetByName(String name) {
       for (TokenSet tokenSet : tokenSets) {
-         if (tokenSet.getName().equals(name)) {
-            return tokenSet;
-         }
+         if (tokenSet.getName().equals(name)) { return tokenSet; }
       }
       // return null if we can't find a tokenset corresponding to the given name
       return null;
@@ -111,6 +108,18 @@ public class InominaxServiceImpl extends RemoteServiceServlet implements Inomina
       throwFunctionnalExceptionIfFalse(checkTokenSetNameIsAvailable(newName), "name already used : " + newName);
       throwFunctionnalExceptionIfFalse(tokenSetExists(oldName), "no token list with name : " + oldName);
       findTokenSetByName(oldName).setName(newName);
+      // TODO : persist renamed TokenSet ...
+   }
+
+   @Override
+   public void cloneTokenSet(String nameOfTokenSetToClone, String newTokenSetName) {
+      throwFunctionnalExceptionIfFalse(checkTokenSetNameIsAvailable(newTokenSetName), "name already used : " + newTokenSetName);
+      throwFunctionnalExceptionIfFalse(tokenSetExists(nameOfTokenSetToClone), "no token list with name : " + nameOfTokenSetToClone);
+      // everything should be ok to clone a token set
+      TokenSet clone = createTokenSet(newTokenSetName);
+      TokenSet tokenSetToClone = findTokenSetByName(nameOfTokenSetToClone);
+      clone.getTokens().addAll(tokenSetToClone.getTokens());
+      // TODO : persist clone ...
    }
 
 }
