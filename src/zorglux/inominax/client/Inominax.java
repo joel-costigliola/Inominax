@@ -152,15 +152,15 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       mainPanel.add(tokensPanel);
       tokensPanel.setWidth("13em");
       manageTokenSetButton.addClickHandler(new ClickHandler() {
-         private NewTokenSetDialogBox newTokenSetDialogBox;
+         private TokenSetManagementDialogBox tokenSetManagementDialogBox;
 
          @Override
          public void onClick(ClickEvent event) {
-            newTokenSetDialogBox = new NewTokenSetDialogBox(inominaxService);
-            newTokenSetDialogBox.addCloseHandler(me);
-            newTokenSetDialogBox.center();
-            newTokenSetDialogBox.show();
-            newTokenSetDialogBox.focusNewTokenSetTextBox();
+            tokenSetManagementDialogBox = new TokenSetManagementDialogBox(inominaxService);
+            tokenSetManagementDialogBox.addCloseHandler(me);
+            tokenSetManagementDialogBox.center();
+            tokenSetManagementDialogBox.show();
+            tokenSetManagementDialogBox.focusNewTokenSetTextBox();
          }
       });
       manageTokenSetButton.setText("Manage list of tokens");

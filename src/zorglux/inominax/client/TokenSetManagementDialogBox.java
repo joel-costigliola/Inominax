@@ -20,12 +20,12 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
-public class NewTokenSetDialogBox extends DialogBox {
+public class TokenSetManagementDialogBox extends DialogBox {
 
    // common attributes
    private static final int PANEL_SPACING = 2;
    private static final String BUTTON_DEFAULT_SIZE = "90px";
-   private static final String LABEL_DEFAULT_SIZE = "170px";
+   private static final String LABEL_DEFAULT_SIZE = "160px";
    private static final String TEXT_BOX_DEFAULT_SIZE = "140px";
    private static final String COMBO_BOX_DEFAULT_SIZE = "150px";
 
@@ -62,8 +62,10 @@ public class NewTokenSetDialogBox extends DialogBox {
    private final InlineHTML horizontalRule2 = new InlineHTML("<hr>");
    private final InlineHTML horizontalRule3 = new InlineHTML("<hr>");
    private final InlineHTML horizontalRule4 = new InlineHTML("<hr>");
+   private final Label emptyLabel = new Label("");
+   private final Label label = new Label("");
 
-   public NewTokenSetDialogBox(final InominaxServiceAsync inominaxServiceParam) {
+   public TokenSetManagementDialogBox(final InominaxServiceAsync inominaxServiceParam) {
       inominaxService = inominaxServiceParam;
 
       setWidth("426px");
@@ -89,6 +91,9 @@ public class NewTokenSetDialogBox extends DialogBox {
             createNewTokensSet(newTokenSetTextBox.getValue());
          }
       });
+
+      newTokenSetPanel.add(emptyLabel);
+      emptyLabel.setWidth("25px");
       createNewTokenSetButton.setText("create");
 
       newTokenSetPanel.add(createNewTokenSetButton);
@@ -105,7 +110,7 @@ public class NewTokenSetDialogBox extends DialogBox {
       removeTokenSetLabel.setWidth(LABEL_DEFAULT_SIZE);
 
       removeTokenSetPanel.add(removeTokenSetComboBox);
-      removeTokenSetComboBox.setWidth(TEXT_BOX_DEFAULT_SIZE);
+      removeTokenSetComboBox.setWidth(COMBO_BOX_DEFAULT_SIZE);
       removeTokenSetButton.addClickHandler(new ClickHandler() {
          @Override
          public void onClick(ClickEvent event) {
@@ -113,6 +118,9 @@ public class NewTokenSetDialogBox extends DialogBox {
             removeTokenSet(selectedTokenSetName);
          }
       });
+
+      removeTokenSetPanel.add(label);
+      label.setWidth("25px");
       removeTokenSetButton.setText("remove");
 
       removeTokenSetPanel.add(removeTokenSetButton);
@@ -130,7 +138,7 @@ public class NewTokenSetDialogBox extends DialogBox {
       renameListLabel.setWidth(LABEL_DEFAULT_SIZE);
 
       renameListPanel.add(renameTokenSetComboBox);
-      renameTokenSetComboBox.setWidth("140px");
+      renameTokenSetComboBox.setWidth(COMBO_BOX_DEFAULT_SIZE);
 
       renameListPanel.add(renameToLabel);
       renameListPanel.setCellHorizontalAlignment(renameToLabel, HasHorizontalAlignment.ALIGN_CENTER);
@@ -163,7 +171,7 @@ public class NewTokenSetDialogBox extends DialogBox {
       cloneTokenSetLabel.setWidth(LABEL_DEFAULT_SIZE);
 
       cloneListPanel.add(cloneTokenSetComboBox);
-      cloneTokenSetComboBox.setWidth("140px");
+      cloneTokenSetComboBox.setWidth(COMBO_BOX_DEFAULT_SIZE);
 
       cloneListPanel.add(cloneTokenSetAsLabel);
       cloneListPanel.setCellHorizontalAlignment(cloneTokenSetAsLabel, HasHorizontalAlignment.ALIGN_CENTER);
@@ -195,10 +203,10 @@ public class NewTokenSetDialogBox extends DialogBox {
          @Override
          public void onClick(ClickEvent event) {
             Widget source = (Widget) event.getSource();
-            while (!source.getParent().getClass().equals(NewTokenSetDialogBox.class)) {
+            while (!source.getParent().getClass().equals(TokenSetManagementDialogBox.class)) {
                source = source.getParent();
             }
-            NewTokenSetDialogBox newTokenSetDialogBox = (NewTokenSetDialogBox) source.getParent();
+            TokenSetManagementDialogBox newTokenSetDialogBox = (TokenSetManagementDialogBox) source.getParent();
             newTokenSetDialogBox.hide();
          }
       });
