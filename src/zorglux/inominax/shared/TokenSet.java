@@ -3,14 +3,32 @@ package zorglux.inominax.shared;
 
 import java.io.Serializable;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.jdo.annotations.Extension;
+import javax.jdo.annotations.IdGeneratorStrategy;
+import javax.jdo.annotations.IdentityType;
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.PrimaryKey;
+
+@PersistenceCapable(identityType = IdentityType.APPLICATION, detachable = "true")
 public class TokenSet implements Serializable {
 
    private static final long serialVersionUID = 8401658275213004116L;
 
+   @SuppressWarnings("unused")
+   @PrimaryKey
+   @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
+   @Extension(vendorName = "datanucleus", key = "gae.encoded-pk", value = "true")
+   private String id;
+
+   @Persistent
    private String name;
-   private Set<String> tokens;
+
+   @Persistent
+   private SortedSet<String> tokens;
 
    public TokenSet() {
       this("");
@@ -34,7 +52,7 @@ public class TokenSet implements Serializable {
       return tokens;
    }
 
-   public void setTokens(Set<String> tokens) {
+   public void setTokens(SortedSet<String> tokens) {
       this.tokens = tokens;
    }
 
