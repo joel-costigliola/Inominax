@@ -5,8 +5,13 @@ import java.util.List;
 import zorglux.inominax.client.callback.BasicCallback;
 import zorglux.inominax.shared.TokenSet;
 
+import com.extjs.gxt.ui.client.event.Listener;
+import com.extjs.gxt.ui.client.event.MessageBoxEvent;
+import com.extjs.gxt.ui.client.widget.Info;
+import com.extjs.gxt.ui.client.widget.MessageBox;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
@@ -114,8 +119,10 @@ public class TokenSetManagementDialogBox extends DialogBox {
       removeTokenSetButton.addClickHandler(new ClickHandler() {
          @Override
          public void onClick(ClickEvent event) {
-            String selectedTokenSetName = removeTokenSetComboBox.getValue(removeTokenSetComboBox.getSelectedIndex());
-            removeTokenSet(selectedTokenSetName);
+            final String selectedTokenSetName = removeTokenSetComboBox.getValue(removeTokenSetComboBox.getSelectedIndex());
+            if (Window.confirm("Are you sure you want to remove " + selectedTokenSetName)) {
+               removeTokenSet(selectedTokenSetName);
+            }
          }
       });
 
