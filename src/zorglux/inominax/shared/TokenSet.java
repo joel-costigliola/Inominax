@@ -27,7 +27,7 @@ public class TokenSet implements Serializable {
    @Persistent
    private String name;
 
-   @Persistent
+   @Persistent(defaultFetchGroup = "true")
    private SortedSet<String> tokens;
 
    public TokenSet() {

@@ -31,10 +31,18 @@ import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.ValueBoxBase.TextAlignment;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Grid;
+import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.CaptionPanel;
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.DisclosurePanel;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
 
 public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
 
-   private static final String STARTS_ENDS_CONTAINS_LABEL_SIZE = "90px";
+   private static final String STARTS_ENDS_CONTAINS_SIZE = "50px";
+   private static final int DEFAULT_NUMBER_OF_NAMES_TO_GENERATE = 40;
    private Inominax me;
    // UI
    private final HorizontalPanel mainPanel = new HorizontalPanel();
@@ -50,29 +58,37 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
    private final Button btnRemoveSelected = new Button("remove selected");
    private final Label chooseTokenSetLabel = new Label("Choose a list of tokens");
    private final VerticalPanel nameGeneratorPanel = new VerticalPanel();
-   private final Label minTokensLabel = new Label("min ");
+   private final Label minTokensLabel = new Label("tokens min and ");
    private final Button generateNamesButton = new Button("Generate names");
-   private final HorizontalPanel minMaxTokensPanel = new HorizontalPanel();
    private final IntegerBox minTokensBox = new IntegerBox();
    private final HorizontalPanel startsWithTokenPanel = new HorizontalPanel();
-   private final Label maxTokensLabel = new Label("max");
+   private final Label maxTokensLabel = new Label("tokens max");
    private final IntegerBox maxTokensBox = new IntegerBox();
-   private final ListBox generatedNamesListBox = new ListBox(true);
-   private final HorizontalPanel numberOfNamesToGeneratePanel = new HorizontalPanel();
-   private final Label numberOfNamesToGenerateLabel = new Label("nb names");
+   private final ListBox generatedNamesListBox1 = new ListBox(true);
+   private final Label numberOfNamesToGenerateLabel = new Label("names");
    private final IntegerBox numberOfNamesToGenerateBox = new IntegerBox();
-   private final Label nameGenerationLabel = new Label("Name generation params");
-   private final Label numberOfTokensLabel = new Label("number of tokens in name");
-   private final Label startsWithLabel = new Label("- starts with ");
+   private final Label numberOfTokensLabel = new Label("with");
+   private final Label startsWithLabel = new Label("starting with");
    private final TextBox startsWithTextBox = new TextBox();
-   private final HorizontalPanel endsWithPanel = new HorizontalPanel();
-   private final Label endsWithLabel = new Label("- ends with ");
+   private final Label endsWithLabel = new Label("ending with");
    private final TextBox endsWithTextBox = new TextBox();
-   private final HorizontalPanel containsPanel = new HorizontalPanel();
-   private final Label containsLabel = new Label("- contains");
+   private final Label containsLabel = new Label("containing");
    private final TextBox containsTextBox = new TextBox();
-   private final Label nameConstraintsLabel = new Label("generated names must ...");
    private final Button manageTokenSetButton = new Button();
+   private final Grid grid = new Grid(2, 3);
+   private final HTML htmlMyTokens = new HTML("My Tokens", true);
+   private final HTML htmlNameGenerator = new HTML("Name generator", true);
+   private final HTML htmlMyNames = new HTML("My Names", true);
+   private final ListBox generatedNamesListBox2 = new ListBox(true);
+   private final HorizontalPanel generatedNamesPanel = new HorizontalPanel();
+   private final HorizontalPanel generateNamesPanel = new HorizontalPanel();
+   private final Label generateLabel = new Label("Generate");
+   private final VerticalPanel verticalPanel = new VerticalPanel();
+   private final CaptionPanel nameGenerationParamsCaptionPanel = new CaptionPanel("Name generation params");
+   private final Label lblAddSelectedNames = new Label("Add selected names to ");
+   private final HorizontalPanel horizontalPanel = new HorizontalPanel();
+   private final ListBox userNamesComboBox = new ListBox();
+   private final Button addGeneratedNamesToUserListNamesButton = new Button("New button");
 
    /**
     * Entry point method.
@@ -84,7 +100,18 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       RootPanel rootPanel = RootPanel.get();
       rootPanel.setSize("500px", "700px");
       GWT.log(rootPanel.toString(), null);
+      // load token sets name
+      loadTokensSetDropBox();
 
+      htmlMyTokens.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+
+      grid.setWidget(0, 0, htmlMyTokens);
+      htmlNameGenerator.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+
+      grid.setWidget(0, 1, htmlNameGenerator);
+
+      grid.setWidget(0, 2, htmlMyNames);
+      grid.setWidget(1, 0, tokensPanel);
 
       tokensPanel.setSpacing(4);
       tokensPanel.add(chooseTokenSetLabel);
@@ -100,8 +127,6 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       newTokenTextBox.setAlignment(TextAlignment.LEFT);
       tokensPanel.add(addTokenPanel);
       addTokenPanel.setWidth("11em");
-      // load token sets name
-      loadTokensSetDropBox();
 
       // Assemble Token panel.
       addTokenPanel.add(newTokenTextBox);
@@ -149,7 +174,6 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
          }
       });
       btnRemoveSelected.setWidth("11em");
-      mainPanel.add(tokensPanel);
       tokensPanel.setWidth("13em");
       manageTokenSetButton.addClickHandler(new ClickHandler() {
          private TokenSetManagementDialogBox tokenSetManagementDialogBox;
@@ -168,80 +192,95 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       tokensPanel.add(manageTokenSetButton);
       manageTokenSetButton.setWidth("11em");
       nameGeneratorPanel.setSpacing(4);
-      mainPanel.add(nameGeneratorPanel);
+      grid.setWidget(1, 1, nameGeneratorPanel);
+      nameGeneratorPanel.setSize("", "");
+      grid.getCellFormatter().setHeight(1, 1, "");
+      grid.getCellFormatter().setWidth(1, 1, "");
 
-      nameGeneratorPanel.add(nameGenerationLabel);
-      nameGenerationLabel.setWidth("");
+      nameGeneratorPanel.add(nameGenerationParamsCaptionPanel);
+      nameGenerationParamsCaptionPanel.setWidth("100pct");
+      nameGeneratorPanel.setCellWidth(nameGenerationParamsCaptionPanel, "100pct");
+      verticalPanel.setSpacing(4);
+      nameGenerationParamsCaptionPanel.setContentWidget(verticalPanel);
+      verticalPanel.setSize("100pct", "100pct");
+      generateNamesPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
+      verticalPanel.add(generateNamesPanel);
+      verticalPanel.setCellVerticalAlignment(generateNamesPanel, HasVerticalAlignment.ALIGN_MIDDLE);
+      generateNamesPanel.setWidth("");
+      generateNamesPanel.setSpacing(4);
 
-      nameGeneratorPanel.add(numberOfNamesToGeneratePanel);
-
-      numberOfNamesToGeneratePanel.add(numberOfNamesToGenerateLabel);
-      numberOfNamesToGeneratePanel.setCellVerticalAlignment(numberOfNamesToGenerateLabel, HasVerticalAlignment.ALIGN_MIDDLE);
-      numberOfNamesToGenerateLabel.setWidth("90px");
-      numberOfNamesToGenerateBox.setText("20");
-
-      numberOfNamesToGeneratePanel.add(numberOfNamesToGenerateBox);
-      numberOfNamesToGenerateBox.setWidth("50px");
-
-      nameGeneratorPanel.add(numberOfTokensLabel);
-
-      nameGeneratorPanel.add(minMaxTokensPanel);
-      nameGeneratorPanel.setCellVerticalAlignment(minMaxTokensPanel, HasVerticalAlignment.ALIGN_MIDDLE);
-      minTokensLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_RIGHT);
-      minTokensLabel.setDirectionEstimator(true);
-      minMaxTokensPanel.add(minTokensLabel);
-      minMaxTokensPanel.setCellVerticalAlignment(minTokensLabel, HasVerticalAlignment.ALIGN_MIDDLE);
-      minTokensLabel.setWidth("40px");
+      generateNamesPanel.add(generateLabel);
+      generateNamesPanel.setCellVerticalAlignment(generateLabel, HasVerticalAlignment.ALIGN_MIDDLE);
+      generateLabel.setWidth("");
+      numberOfNamesToGenerateBox.addValueChangeHandler(new ValueChangeHandler<Integer>() {
+         @Override
+         public void onValueChange(ValueChangeEvent<Integer> event) {
+            Integer numberOfNamesToGenerate = event.getValue();
+            generateNamesButton.setHTML("Generate " + numberOfNamesToGenerate + " names");
+         }
+      });
+      numberOfNamesToGenerateBox.setAlignment(TextAlignment.CENTER);
+      generateNamesPanel.add(numberOfNamesToGenerateBox);
+      generateNamesPanel.setCellVerticalAlignment(numberOfNamesToGenerateBox, HasVerticalAlignment.ALIGN_MIDDLE);
+      numberOfNamesToGenerateBox.setText(String.valueOf(DEFAULT_NUMBER_OF_NAMES_TO_GENERATE));
+      generateNamesButton.setHTML("Generate " + DEFAULT_NUMBER_OF_NAMES_TO_GENERATE + " names");
+      numberOfNamesToGenerateBox.setWidth("40px");
+      generateNamesPanel.add(numberOfNamesToGenerateLabel);
+      generateNamesPanel.setCellVerticalAlignment(numberOfNamesToGenerateLabel, HasVerticalAlignment.ALIGN_MIDDLE);
+      numberOfNamesToGenerateLabel.setWidth("");
+      generateNamesPanel.add(numberOfTokensLabel);
+      generateNamesPanel.setCellVerticalAlignment(numberOfTokensLabel, HasVerticalAlignment.ALIGN_MIDDLE);
+      generateNamesPanel.add(minTokensBox);
+      generateNamesPanel.setCellVerticalAlignment(minTokensBox, HasVerticalAlignment.ALIGN_MIDDLE);
+      minTokensBox.setAlignment(TextAlignment.CENTER);
       minTokensBox.setText("2");
-
-      minMaxTokensPanel.add(minTokensBox);
-      minMaxTokensPanel.setCellVerticalAlignment(minTokensBox, HasVerticalAlignment.ALIGN_MIDDLE);
-      minTokensBox.setWidth("30px");
-      maxTokensLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_RIGHT);
-      maxTokensLabel.setDirectionEstimator(true);
-      minMaxTokensPanel.add(maxTokensLabel);
-      minMaxTokensPanel.setCellVerticalAlignment(maxTokensLabel, HasVerticalAlignment.ALIGN_MIDDLE);
-      maxTokensLabel.setWidth("40px");
-      minMaxTokensPanel.add(maxTokensBox);
-      minMaxTokensPanel.setCellVerticalAlignment(maxTokensBox, HasVerticalAlignment.ALIGN_MIDDLE);
+      minTokensBox.setWidth("25px");
+      generateNamesPanel.add(minTokensLabel);
+      generateNamesPanel.setCellVerticalAlignment(minTokensLabel, HasVerticalAlignment.ALIGN_MIDDLE);
+      minTokensLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+      minTokensLabel.setDirectionEstimator(true);
+      minTokensLabel.setWidth("");
+      generateNamesPanel.add(maxTokensBox);
+      generateNamesPanel.setCellVerticalAlignment(maxTokensBox, HasVerticalAlignment.ALIGN_MIDDLE);
+      maxTokensBox.setAlignment(TextAlignment.CENTER);
       maxTokensBox.setText("4");
-      maxTokensBox.setWidth("30px");
-      nameConstraintsLabel.setWordWrap(false);
-
-      nameGeneratorPanel.add(nameConstraintsLabel);
-
-      nameGeneratorPanel.add(startsWithTokenPanel);
+      maxTokensBox.setWidth("25px");
+      generateNamesPanel.add(maxTokensLabel);
+      generateNamesPanel.setCellVerticalAlignment(maxTokensLabel, HasVerticalAlignment.ALIGN_MIDDLE);
+      maxTokensLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+      maxTokensLabel.setDirectionEstimator(true);
+      maxTokensLabel.setWidth("");
+      generateNamesPanel.setCellVerticalAlignment(generateNamesButton, HasVerticalAlignment.ALIGN_MIDDLE);
+      startsWithTokenPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
+      verticalPanel.add(startsWithTokenPanel);
+      verticalPanel.setCellVerticalAlignment(startsWithTokenPanel, HasVerticalAlignment.ALIGN_MIDDLE);
+      startsWithTokenPanel.setSpacing(4);
       startsWithLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_LEFT);
+      startsWithTokenPanel.setSize("", "");
       startsWithTokenPanel.add(startsWithLabel);
-      startsWithLabel.setWidth(STARTS_ENDS_CONTAINS_LABEL_SIZE);
+      startsWithLabel.setWidth("");
       startsWithTokenPanel.setCellVerticalAlignment(startsWithLabel, HasVerticalAlignment.ALIGN_MIDDLE);
+      startsWithTextBox.setAlignment(TextAlignment.LEFT);
 
       startsWithTokenPanel.add(startsWithTextBox);
       startsWithTokenPanel.setCellVerticalAlignment(startsWithTextBox, HasVerticalAlignment.ALIGN_MIDDLE);
-      startsWithTextBox.setWidth("50px");
-
-      nameGeneratorPanel.add(endsWithPanel);
-      endsWithPanel.setWidth("");
-      endsWithLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_LEFT);
-
-      endsWithPanel.add(endsWithLabel);
-      endsWithPanel.setCellVerticalAlignment(endsWithLabel, HasVerticalAlignment.ALIGN_MIDDLE);
-      endsWithLabel.setWidth(STARTS_ENDS_CONTAINS_LABEL_SIZE);
-
-      endsWithPanel.add(endsWithTextBox);
-      endsWithPanel.setCellVerticalAlignment(endsWithTextBox, HasVerticalAlignment.ALIGN_MIDDLE);
-      endsWithTextBox.setWidth("50px");
-
-      nameGeneratorPanel.add(containsPanel);
-      containsLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_LEFT);
-
-      containsPanel.add(containsLabel);
-      containsLabel.setWidth(STARTS_ENDS_CONTAINS_LABEL_SIZE);
-      containsPanel.setCellVerticalAlignment(containsLabel, HasVerticalAlignment.ALIGN_MIDDLE);
-
-      containsPanel.add(containsTextBox);
-      containsPanel.setCellVerticalAlignment(containsTextBox, HasVerticalAlignment.ALIGN_MIDDLE);
-      containsTextBox.setWidth("50px");
+      startsWithTextBox.setWidth(STARTS_ENDS_CONTAINS_SIZE);
+      startsWithTokenPanel.add(containsLabel);
+      startsWithTokenPanel.setCellVerticalAlignment(containsLabel, HasVerticalAlignment.ALIGN_MIDDLE);
+      containsLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_RIGHT);
+      containsLabel.setWidth("");
+      startsWithTokenPanel.add(containsTextBox);
+      containsTextBox.setWidth(STARTS_ENDS_CONTAINS_SIZE);
+      startsWithTokenPanel.add(endsWithLabel);
+      startsWithTokenPanel.setCellVerticalAlignment(endsWithLabel, HasVerticalAlignment.ALIGN_MIDDLE);
+      endsWithLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+      endsWithLabel.setWidth("");
+      startsWithTokenPanel.add(endsWithTextBox);
+      endsWithTextBox.setWidth(STARTS_ENDS_CONTAINS_SIZE);
+      nameGeneratorPanel.add(generateNamesButton);
+      nameGeneratorPanel.setCellVerticalAlignment(generateNamesButton, HasVerticalAlignment.ALIGN_MIDDLE);
+      nameGeneratorPanel.setCellHeight(generateNamesButton, "40");
+      nameGeneratorPanel.setCellHorizontalAlignment(generateNamesButton, HasHorizontalAlignment.ALIGN_CENTER);
       generateNamesButton.addClickHandler(new ClickHandler() {
          @Override
          public void onClick(ClickEvent event) {
@@ -260,24 +299,52 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
                nameGenerator.generatedNameMustContain(containsTextBox.getValue());
             }
             Set<String> generatedNames = nameGenerator.generateNames(numberOfNamesToGenerateBox.getValue());
-            generatedNamesListBox.clear();
+            generatedNamesListBox1.clear();
+            generatedNamesListBox2.clear();
             int i = 0;
             for (String generatedName : generatedNames) {
-               generatedNamesListBox.addItem(generatedName, generatedName);
+               if (i % 2 == 0) {
+                  generatedNamesListBox1.addItem(generatedName, generatedName);
+               } else {
+                  generatedNamesListBox2.addItem(generatedName, generatedName);
+               }
                i++;
             }
          }
       });
-      generateNamesButton.setText("Generate names");
+      generatedNamesPanel.setSpacing(2);
+      generatedNamesPanel.setSize("100pct", "");
 
-      nameGeneratorPanel.add(generateNamesButton);
-      generatedNamesListBox.setVisibleItemCount(20);
+      nameGeneratorPanel.add(generatedNamesPanel);
+      nameGeneratorPanel.setCellHeight(generatedNamesPanel, "100pct");
+      nameGeneratorPanel.setCellWidth(generatedNamesPanel, "100pct");
+      generatedNamesPanel.add(generatedNamesListBox1);
+      generatedNamesListBox1.setVisibleItemCount(20);
+      generatedNamesListBox1.setWidth("17em");
+      generatedNamesPanel.add(generatedNamesListBox2);
+      generatedNamesListBox2.setVisibleItemCount(20);
+      generatedNamesListBox2.setWidth("17em");
+      horizontalPanel.setSpacing(4);
 
-      nameGeneratorPanel.add(generatedNamesListBox);
-      generatedNamesListBox.setWidth("15em");
+      nameGeneratorPanel.add(horizontalPanel);
+      horizontalPanel.setWidth("100%");
+      horizontalPanel.add(lblAddSelectedNames);
+      horizontalPanel.setCellHorizontalAlignment(lblAddSelectedNames, HasHorizontalAlignment.ALIGN_RIGHT);
+      horizontalPanel.setCellVerticalAlignment(lblAddSelectedNames, HasVerticalAlignment.ALIGN_MIDDLE);
+      lblAddSelectedNames.setWidth("100%");
+
+      horizontalPanel.add(userNamesComboBox);
+      horizontalPanel.setCellVerticalAlignment(userNamesComboBox, HasVerticalAlignment.ALIGN_MIDDLE);
+      userNamesComboBox.setWidth("100%");
+      addGeneratedNamesToUserListNamesButton.setText("Add");
+
+      horizontalPanel.add(addGeneratedNamesToUserListNamesButton);
+      addGeneratedNamesToUserListNamesButton.setWidth("100%");
 
       // Associate the Main panel with the HTML host page.
-      RootPanel.get("inominaX").add(mainPanel);
+      RootPanel.get("inominaX").add(grid);
+      grid.setWidth("100pct");
+      grid.getCellFormatter().setVerticalAlignment(1, 1, HasVerticalAlignment.ALIGN_TOP);
    }
 
    private void addToken() {
