@@ -17,9 +17,14 @@ import com.google.gwt.event.dom.client.KeyPressEvent;
 import com.google.gwt.event.dom.client.KeyPressHandler;
 import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CaptionPanel;
+import com.google.gwt.user.client.ui.Grid;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -31,13 +36,6 @@ import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.ValueBoxBase.TextAlignment;
 import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.gwt.user.client.ui.Grid;
-import com.google.gwt.user.client.ui.HTML;
-import com.google.gwt.user.client.ui.CaptionPanel;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.DisclosurePanel;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
 
 public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
 
@@ -45,7 +43,6 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
    private static final int DEFAULT_NUMBER_OF_NAMES_TO_GENERATE = 40;
    private Inominax me;
    // UI
-   private final HorizontalPanel mainPanel = new HorizontalPanel();
    private final HorizontalPanel addTokenPanel = new HorizontalPanel();
    private final TextBox newTokenTextBox = new TextBox();
    private final Button addTokenButton = new Button("Add");
@@ -53,9 +50,9 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
    // services
    private final InominaxServiceAsync inominaxService = GWT.create(InominaxService.class);
    private final ListBox tokensListBox = new ListBox(true);
-   private final ListBox tokensSetDropBox = new ListBox(false);
+   private final ListBox tokenSetDropBox = new ListBox(false);
    private final VerticalPanel tokensPanel = new VerticalPanel();
-   private final Button btnRemoveSelected = new Button("remove selected");
+   private final Button removeSelectedTokensButton = new Button("remove selected");
    private final Label chooseTokenSetLabel = new Label("Choose a list of tokens");
    private final VerticalPanel nameGeneratorPanel = new VerticalPanel();
    private final Label minTokensLabel = new Label("tokens min and ");
@@ -75,7 +72,7 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
    private final Label containsLabel = new Label("containing");
    private final TextBox containsTextBox = new TextBox();
    private final Button manageTokenSetButton = new Button();
-   private final Grid grid = new Grid(2, 3);
+   private final Grid mainPanel = new Grid(2, 3);
    private final HTML htmlMyTokens = new HTML("My Tokens", true);
    private final HTML htmlNameGenerator = new HTML("Name generator", true);
    private final HTML htmlMyNames = new HTML("My Names", true);
@@ -83,12 +80,21 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
    private final HorizontalPanel generatedNamesPanel = new HorizontalPanel();
    private final HorizontalPanel generateNamesPanel = new HorizontalPanel();
    private final Label generateLabel = new Label("Generate");
-   private final VerticalPanel verticalPanel = new VerticalPanel();
+   private final VerticalPanel nameGenerationParamsPanel = new VerticalPanel();
    private final CaptionPanel nameGenerationParamsCaptionPanel = new CaptionPanel("Name generation params");
-   private final Label lblAddSelectedNames = new Label("Add selected names to ");
-   private final HorizontalPanel horizontalPanel = new HorizontalPanel();
-   private final ListBox userNamesComboBox = new ListBox();
+   private final Label addSelectedNamesLabel = new Label("Add selected names to ");
+   private final HorizontalPanel addSelectedNamesPanel = new HorizontalPanel();
+   private final ListBox addGeneratedNamesToUserNamesComboBox = new ListBox();
    private final Button addGeneratedNamesToUserListNamesButton = new Button("New button");
+   private final VerticalPanel userNamesPanel = new VerticalPanel();
+   private final Label chooseNameSetLabel = new Label("Choose a list of names");
+   private final ListBox nameSetDropBox = new ListBox(false);
+   private final HorizontalPanel addNamePanel = new HorizontalPanel();
+   private final TextBox newNameTextBox = new TextBox();
+   private final Button addNameButton = new Button("Add");
+   private final ListBox namesListBox = new ListBox(true);
+   private final Button removeSelectedNamesButton = new Button("remove selected");
+   private final Button manageNameSetButton = new Button();
 
    /**
     * Entry point method.
@@ -98,32 +104,33 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       me = this;
 
       RootPanel rootPanel = RootPanel.get();
-      rootPanel.setSize("500px", "700px");
+      rootPanel.setSize("800px", "700px");
       GWT.log(rootPanel.toString(), null);
       // load token sets name
       loadTokensSetDropBox();
+      loadNamesSetDropBox();
 
       htmlMyTokens.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
 
-      grid.setWidget(0, 0, htmlMyTokens);
+      mainPanel.setWidget(0, 0, htmlMyTokens);
       htmlNameGenerator.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
 
-      grid.setWidget(0, 1, htmlNameGenerator);
+      mainPanel.setWidget(0, 1, htmlNameGenerator);
 
-      grid.setWidget(0, 2, htmlMyNames);
-      grid.setWidget(1, 0, tokensPanel);
+      mainPanel.setWidget(0, 2, htmlMyNames);
+      mainPanel.setWidget(1, 0, tokensPanel);
 
       tokensPanel.setSpacing(4);
       tokensPanel.add(chooseTokenSetLabel);
       chooseTokenSetLabel.setWidth("");
-      tokensPanel.add(tokensSetDropBox);
-      tokensSetDropBox.addChangeHandler(new ChangeHandler() {
+      tokensPanel.add(tokenSetDropBox);
+      tokenSetDropBox.addChangeHandler(new ChangeHandler() {
          @Override
          public void onChange(ChangeEvent event) {
             loadTokensOfSelectedTokenSet();
          }
       });
-      tokensSetDropBox.setWidth("11em");
+      tokenSetDropBox.setWidth("11em");
       newTokenTextBox.setAlignment(TextAlignment.LEFT);
       tokensPanel.add(addTokenPanel);
       addTokenPanel.setWidth("11em");
@@ -165,15 +172,15 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
 
       tokensListBox.setWidth("11em");
       tokensListBox.setVisibleItemCount(25);
-      tokensPanel.add(btnRemoveSelected);
-      btnRemoveSelected.setText("Remove selected");
-      btnRemoveSelected.addClickHandler(new ClickHandler() {
+      tokensPanel.add(removeSelectedTokensButton);
+      removeSelectedTokensButton.setText("Remove selected");
+      removeSelectedTokensButton.addClickHandler(new ClickHandler() {
          @Override
          public void onClick(ClickEvent event) {
             removeSelectedTokensFromCurrentTokenSet();
          }
       });
-      btnRemoveSelected.setWidth("11em");
+      removeSelectedTokensButton.setWidth("11em");
       tokensPanel.setWidth("13em");
       manageTokenSetButton.addClickHandler(new ClickHandler() {
          private TokenSetManagementDialogBox tokenSetManagementDialogBox;
@@ -192,20 +199,20 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       tokensPanel.add(manageTokenSetButton);
       manageTokenSetButton.setWidth("11em");
       nameGeneratorPanel.setSpacing(4);
-      grid.setWidget(1, 1, nameGeneratorPanel);
+      mainPanel.setWidget(1, 1, nameGeneratorPanel);
       nameGeneratorPanel.setSize("", "");
-      grid.getCellFormatter().setHeight(1, 1, "");
-      grid.getCellFormatter().setWidth(1, 1, "");
+      mainPanel.getCellFormatter().setHeight(1, 1, "");
+      mainPanel.getCellFormatter().setWidth(1, 1, "");
 
       nameGeneratorPanel.add(nameGenerationParamsCaptionPanel);
       nameGenerationParamsCaptionPanel.setWidth("100pct");
       nameGeneratorPanel.setCellWidth(nameGenerationParamsCaptionPanel, "100pct");
-      verticalPanel.setSpacing(4);
-      nameGenerationParamsCaptionPanel.setContentWidget(verticalPanel);
-      verticalPanel.setSize("100pct", "100pct");
+      nameGenerationParamsPanel.setSpacing(4);
+      nameGenerationParamsCaptionPanel.setContentWidget(nameGenerationParamsPanel);
+      nameGenerationParamsPanel.setSize("100pct", "100pct");
       generateNamesPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
-      verticalPanel.add(generateNamesPanel);
-      verticalPanel.setCellVerticalAlignment(generateNamesPanel, HasVerticalAlignment.ALIGN_MIDDLE);
+      nameGenerationParamsPanel.add(generateNamesPanel);
+      nameGenerationParamsPanel.setCellVerticalAlignment(generateNamesPanel, HasVerticalAlignment.ALIGN_MIDDLE);
       generateNamesPanel.setWidth("");
       generateNamesPanel.setSpacing(4);
 
@@ -252,8 +259,8 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       maxTokensLabel.setWidth("");
       generateNamesPanel.setCellVerticalAlignment(generateNamesButton, HasVerticalAlignment.ALIGN_MIDDLE);
       startsWithTokenPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
-      verticalPanel.add(startsWithTokenPanel);
-      verticalPanel.setCellVerticalAlignment(startsWithTokenPanel, HasVerticalAlignment.ALIGN_MIDDLE);
+      nameGenerationParamsPanel.add(startsWithTokenPanel);
+      nameGenerationParamsPanel.setCellVerticalAlignment(startsWithTokenPanel, HasVerticalAlignment.ALIGN_MIDDLE);
       startsWithTokenPanel.setSpacing(4);
       startsWithLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_LEFT);
       startsWithTokenPanel.setSize("", "");
@@ -324,27 +331,80 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       generatedNamesPanel.add(generatedNamesListBox2);
       generatedNamesListBox2.setVisibleItemCount(20);
       generatedNamesListBox2.setWidth("17em");
-      horizontalPanel.setSpacing(4);
+      addSelectedNamesPanel.setSpacing(4);
 
-      nameGeneratorPanel.add(horizontalPanel);
-      horizontalPanel.setWidth("100%");
-      horizontalPanel.add(lblAddSelectedNames);
-      horizontalPanel.setCellHorizontalAlignment(lblAddSelectedNames, HasHorizontalAlignment.ALIGN_RIGHT);
-      horizontalPanel.setCellVerticalAlignment(lblAddSelectedNames, HasVerticalAlignment.ALIGN_MIDDLE);
-      lblAddSelectedNames.setWidth("100%");
+      nameGeneratorPanel.add(addSelectedNamesPanel);
+      addSelectedNamesPanel.setWidth("100%");
+      addSelectedNamesPanel.add(addSelectedNamesLabel);
+      addSelectedNamesPanel.setCellHorizontalAlignment(addSelectedNamesLabel, HasHorizontalAlignment.ALIGN_RIGHT);
+      addSelectedNamesPanel.setCellVerticalAlignment(addSelectedNamesLabel, HasVerticalAlignment.ALIGN_MIDDLE);
+      addSelectedNamesLabel.setWidth("100%");
+      addGeneratedNamesToUserNamesComboBox.addChangeHandler(new ChangeHandler() {
+         @Override
+         public void onChange(ChangeEvent event) {
+            nameSetDropBox.setSelectedIndex(addGeneratedNamesToUserNamesComboBox.getSelectedIndex());
+            loadNamesOfSelectedNameSet();
+         }
+      });
 
-      horizontalPanel.add(userNamesComboBox);
-      horizontalPanel.setCellVerticalAlignment(userNamesComboBox, HasVerticalAlignment.ALIGN_MIDDLE);
-      userNamesComboBox.setWidth("100%");
+      addSelectedNamesPanel.add(addGeneratedNamesToUserNamesComboBox);
+      addSelectedNamesPanel.setCellVerticalAlignment(addGeneratedNamesToUserNamesComboBox, HasVerticalAlignment.ALIGN_MIDDLE);
+      addGeneratedNamesToUserNamesComboBox.setWidth("100%");
       addGeneratedNamesToUserListNamesButton.setText("Add");
 
-      horizontalPanel.add(addGeneratedNamesToUserListNamesButton);
+      addSelectedNamesPanel.add(addGeneratedNamesToUserListNamesButton);
       addGeneratedNamesToUserListNamesButton.setWidth("100%");
 
+      // users names panel
+      mainPanel.setWidget(1, 2, userNamesPanel);
+
       // Associate the Main panel with the HTML host page.
-      RootPanel.get("inominaX").add(grid);
-      grid.setWidth("100pct");
-      grid.getCellFormatter().setVerticalAlignment(1, 1, HasVerticalAlignment.ALIGN_TOP);
+      RootPanel.get("inominaX").add(mainPanel);
+      mainPanel.setWidth("100pct");
+      userNamesPanel.setSpacing(4);
+      userNamesPanel.setWidth("13em");
+
+      userNamesPanel.add(chooseNameSetLabel);
+      chooseNameSetLabel.setWidth("");
+      nameSetDropBox.addChangeHandler(new ChangeHandler() {
+         @Override
+         public void onChange(ChangeEvent event) {
+            loadNamesOfSelectedNameSet();
+         }
+      });
+
+      userNamesPanel.add(nameSetDropBox);
+      nameSetDropBox.setWidth("11em");
+
+      userNamesPanel.add(addNamePanel);
+      addNamePanel.setWidth("11em");
+      newNameTextBox.setFocus(true);
+      newNameTextBox.setAlignment(TextAlignment.LEFT);
+
+      addNamePanel.add(newNameTextBox);
+      newNameTextBox.setSize("8em", "");
+
+      addNamePanel.add(addNameButton);
+      addNameButton.setSize("3em", "25px");
+      namesListBox.setVisibleItemCount(25);
+
+      userNamesPanel.add(namesListBox);
+      namesListBox.setWidth("11em");
+      removeSelectedNamesButton.setText("Remove selected");
+      removeSelectedNamesButton.addClickHandler(new ClickHandler() {
+         @Override
+         public void onClick(ClickEvent event) {
+            removeSelectedNamesFromCurrentNameSet();
+         }
+      });
+
+      userNamesPanel.add(removeSelectedNamesButton);
+      removeSelectedNamesButton.setWidth("11em");
+      manageNameSetButton.setText("Manage list of tokens");
+
+      userNamesPanel.add(manageNameSetButton);
+      manageNameSetButton.setWidth("11em");
+      mainPanel.getCellFormatter().setVerticalAlignment(1, 1, HasVerticalAlignment.ALIGN_TOP);
    }
 
    private void addToken() {
@@ -406,7 +466,7 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
    }
 
    private String selectedTokenSet() {
-      return tokensSetDropBox.getValue(tokensSetDropBox.getSelectedIndex());
+      return tokenSetDropBox.getValue(tokenSetDropBox.getSelectedIndex());
    }
 
    public void loadTokensSetDropBox() {
@@ -421,9 +481,9 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
          }
          @Override
          public void onSuccess(List<String> tokenSetsNames) {
-            tokensSetDropBox.clear();
+            tokenSetDropBox.clear();
             for (String tokenSetName : tokenSetsNames) {
-               tokensSetDropBox.addItem(tokenSetName);
+               tokenSetDropBox.addItem(tokenSetName);
             }
             loadTokensOfSelectedTokenSet();
          }
@@ -458,4 +518,117 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       // only one popup : newTokenSetDialogBox, thus we know what to do.
       loadTokensSetDropBox();
    }
+
+   private void addName() {
+      final String newName = newNameTextBox.getText().trim();
+
+      // Set up the callback object.
+      AsyncCallback<Void> addToNameSetCallback = new AsyncCallback<Void>() {
+         @Override
+         public void onFailure(Throwable caught) {
+            if (caught instanceof FunctionnalException) {
+               Window.alert(caught.getMessage());
+            }
+
+         }
+         @Override
+         public void onSuccess(Void result) {
+            loadNamesOfSelectedNameSet();
+         }
+      };
+      // call inominaxService
+      inominaxService.addToNameSet(selectedNameSet(), new String[] { newName }, addToNameSetCallback);
+      newNameTextBox.setFocus(true);
+   }
+
+   private void loadNamesOfSelectedNameSet() {
+      loadNamesOf(selectedNameSet());
+   }
+
+   private void removeSelectedNamesFromCurrentNameSet() {
+      final String selectedNamesSetName = selectedNameSet();
+      List<Integer> selectedNamesIndexes = new ArrayList<Integer>();
+      List<String> selectedNames = new ArrayList<String>();
+      for (int i = 0; i < namesListBox.getItemCount(); i++) {
+         if (namesListBox.isItemSelected(i)) {
+            selectedNames.add(namesListBox.getValue(i));
+            selectedNamesIndexes.add(i);
+            // namesListBox.removeItem(i);
+         }
+      }
+      GWT.log("selectedNames=" + selectedNames);
+
+      // Set up the callback object.
+      AsyncCallback<Void> removeFromNameSetCallback = new AsyncCallback<Void>() {
+         @Override
+         public void onFailure(Throwable caught) {
+            if (caught instanceof FunctionnalException) {
+               Window.alert(caught.getMessage());
+            }
+
+         }
+         @Override
+         public void onSuccess(Void result) {
+            // refresh current name set
+            loadNamesOf(selectedNamesSetName);
+         }
+      };
+      // call inominaxService
+      inominaxService.removeFromNameSet(selectedNamesSetName, selectedNames.toArray(new String[0]), removeFromNameSetCallback);
+   }
+
+   private String selectedNameSet() {
+      return nameSetDropBox.getValue(nameSetDropBox.getSelectedIndex());
+   }
+
+   private String selectedNameSetForAddingGeneratedNames() {
+      return nameSetDropBox.getValue(nameSetDropBox.getSelectedIndex());
+   }
+
+   public void loadNamesSetDropBox() {
+      GWT.log("initializing getNameSetsNamesCallback");
+      // Set up the callback object.
+      AsyncCallback<List<String>> getNameSetsNamesCallback = new AsyncCallback<List<String>>() {
+         @Override
+         public void onFailure(Throwable caught) {
+            if (caught instanceof FunctionnalException) {
+               Window.alert(caught.getMessage());
+            }
+         }
+         @Override
+         public void onSuccess(List<String> nameSetsNames) {
+            nameSetDropBox.clear();
+            addGeneratedNamesToUserNamesComboBox.clear();
+            for (String nameSetName : nameSetsNames) {
+               nameSetDropBox.addItem(nameSetName);
+               addGeneratedNamesToUserNamesComboBox.addItem(nameSetName);
+            }
+            loadNamesOfSelectedNameSet();
+         }
+      };
+      // call inominaxService
+      inominaxService.getNameSetsNames(getNameSetsNamesCallback);
+   }
+
+   private void loadNamesOf(String nameSetName) {
+      // Set up the callback object.
+      AsyncCallback<Set<String>> loadNamesOfCallback = new AsyncCallback<Set<String>>() {
+         @Override
+         public void onFailure(Throwable caught) {
+            if (caught instanceof FunctionnalException) {
+               Window.alert(caught.getMessage());
+            }
+         }
+         @Override
+         public void onSuccess(Set<String> names) {
+            namesListBox.clear();
+            for (String name : names) {
+               namesListBox.addItem(name);
+            }
+         }
+      };
+      // call inominaxService
+      inominaxService.getNamesOfSet(nameSetName, loadNamesOfCallback);
+   }
+
 }

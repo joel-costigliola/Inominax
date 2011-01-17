@@ -12,6 +12,7 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 
 import zorglux.inominax.client.InominaxService;
+import zorglux.inominax.shared.NameSet;
 import zorglux.inominax.shared.TokenSet;
 
 import com.google.gwt.core.client.GWT;
@@ -20,13 +21,20 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 @SuppressWarnings("serial")
 public class InominaxServiceImpl extends RemoteServiceServlet implements InominaxService {
 
-   private static final String FIND_TOKENSET_BY_NAME_QUERY = "select from " + TokenSet.class.getName() + " where name == :name";
+   private static final String FIND_TOKEN_SET_BY_NAME_QUERY = "select from " + TokenSet.class.getName() + " where name == :name";
    private static final String ALL_TOKENS_SET_QUERY = "select from " + TokenSet.class.getName() + " order by name asc";
+   private static final String FIND_NAME_SET_BY_NAME_QUERY = "select from " + NameSet.class.getName() + " where name == :name";
+   private static final Object ALL_NAMES_SET_QUERY = "select from " + NameSet.class.getName() + " order by name asc";
 
    public InominaxServiceImpl() {
       super();
       populateDefaultTokenSetsOnce();
+      populateDefaultNameSetsOnce();
    }
+
+   // =============================================================================================================
+   // Tokens section
+   // =============================================================================================================
 
    private void populateDefaultTokenSetsOnce() {
       if (countTokenSets() == 0) {
@@ -100,7 +108,7 @@ public class InominaxServiceImpl extends RemoteServiceServlet implements Inomina
    private TokenSet findTokenSetByName(String name) {
       PersistenceManager persistenceManager = getPersistenceManager();
       try {
-         Query query = persistenceManager.newQuery(FIND_TOKENSET_BY_NAME_QUERY);
+         Query query = persistenceManager.newQuery(FIND_TOKEN_SET_BY_NAME_QUERY);
          query.setUnique(true);
          TokenSet result = (TokenSet) query.execute(name);
          return result == null ? null : persistenceManager.detachCopy(result);
@@ -181,6 +189,168 @@ public class InominaxServiceImpl extends RemoteServiceServlet implements Inomina
       try {
          TokenSet clone = createTokenSet(newTokenSetName);
          clone.getTokens().addAll(tokenSetToClone.getTokens());
+         persistenceManager.makePersistent(clone);
+      } finally {
+         persistenceManager.close();
+      }
+   }
+
+   // =============================================================================================================
+   // Users names section
+   // =============================================================================================================
+
+   private void populateDefaultNameSetsOnce() {
+      if (countNameSets() == 0) {
+         PersistenceManager persistenceManager = getPersistenceManager();
+         try {
+            NameSet joeNameset = new NameSet("Joe");
+            joeNameset.addName("Arkael", "Elwyn");
+            NameSet nextGameNameSet = new NameSet("Next game");
+            nextGameNameSet.addName("Joachim", "Sayal");
+            persistenceManager.makePersistentAll(joeNameset, nextGameNameSet);
+         } finally {
+            persistenceManager.close();
+         }
+      }
+   }
+
+   @SuppressWarnings("unchecked")
+   private int countNameSets() {
+      PersistenceManager persistenceManager = getPersistenceManager();
+      try {
+         Query query = persistenceManager.newQuery(ALL_NAMES_SET_QUERY);
+         return ((List<NameSet>) query.execute()).size();
+      } finally {
+         persistenceManager.close();
+      }
+   }
+
+   @SuppressWarnings("unchecked")
+   @Override
+   public List<String> getNameSetsNames() {
+      PersistenceManager persistenceManager = getPersistenceManager();
+      try {
+         Query query = persistenceManager.newQuery(ALL_NAMES_SET_QUERY);
+         List<NameSet> allNameSets = (List<NameSet>) query.execute();
+         List<String> nameSetsNames = new ArrayList<String>(allNameSets.size());
+         for (NameSet nameSet : allNameSets) {
+            nameSetsNames.add(nameSet.getName());
+         }
+         return nameSetsNames;
+      } finally {
+         persistenceManager.close();
+      }
+   }
+
+   @Override
+   public NameSet createNameSet(String nameSetName) {
+      throwFunctionnalExceptionIfFalse(checkNameSetNameIsAvailable(nameSetName), "name already used : " + nameSetName);
+      NameSet newNameSet = new NameSet(nameSetName);
+      PersistenceManager persistenceManager = getPersistenceManager();
+      try {
+         persistenceManager.makePersistent(newNameSet);
+         GWT.log("create name set " + nameSetName);
+         return newNameSet;
+      } finally {
+         persistenceManager.close();
+      }
+   }
+
+   @Override
+   public void removeNameSet(String name) {
+      NameSet nameSet = findNameSetByName(name);
+      if (nameSet != null) {
+         PersistenceManager persistenceManager = getPersistenceManager();
+         try {
+            persistenceManager.deletePersistent(nameSet);
+         } finally {
+            persistenceManager.close();
+         }
+      }
+   }
+
+   // name management
+   @Override
+   public Set<String> getNamesOfSet(String name) {
+      if (nameSetExists(name)) { return findNameSetByName(name).getNames(); }
+      // return empty set if we can't find a nameset corresponding to the given name
+      return new HashSet<String>();
+   }
+
+   private NameSet findNameSetByName(String name) {
+      PersistenceManager persistenceManager = getPersistenceManager();
+      try {
+         Query query = persistenceManager.newQuery(FIND_NAME_SET_BY_NAME_QUERY);
+         query.setUnique(true);
+         NameSet result = (NameSet) query.execute(name);
+         return result == null ? null : persistenceManager.detachCopy(result);
+      } finally {
+         persistenceManager.close();
+      }
+   }
+
+   @Override
+   public void addToNameSet(String nameSetName, String... names) {
+      if (nameSetExists(nameSetName)) {
+         NameSet nameSet = findNameSetByName(nameSetName);
+         PersistenceManager persistenceManager = getPersistenceManager();
+         try {
+            nameSet = persistenceManager.makePersistent(nameSet);
+            nameSet.addName(names);
+         } finally {
+            persistenceManager.close();
+         }
+      }
+   }
+
+   @Override
+   public void removeFromNameSet(String nameSetName, String... names) {
+      if (nameSetExists(nameSetName)) {
+         NameSet nameSet = findNameSetByName(nameSetName);
+         PersistenceManager persistenceManager = getPersistenceManager();
+         try {
+            nameSet = persistenceManager.makePersistent(nameSet);
+            nameSet.removeNames(names);
+            GWT.log("removing names " + names + " from " + nameSetName);
+         } finally {
+            persistenceManager.close();
+         }
+      }
+   }
+
+
+   public boolean checkNameSetNameIsAvailable(String nameSetName) {
+      return !nameSetExists(nameSetName);
+   }
+
+   private boolean nameSetExists(String nameSetName) {
+      return getNameSetsNames().contains(nameSetName);
+   }
+
+   @Override
+   public void renameNameSet(String oldName, String newName) {
+      throwFunctionnalExceptionIfFalse(checkNameSetNameIsAvailable(newName), "name already used : " + newName);
+      throwFunctionnalExceptionIfFalse(nameSetExists(oldName), "no name list with name : " + oldName);
+      NameSet nameSet = findNameSetByName(oldName);
+      PersistenceManager persistenceManager = getPersistenceManager();
+      try {
+         nameSet = persistenceManager.makePersistent(nameSet);
+         nameSet.setName(newName);
+      } finally {
+         persistenceManager.close();
+      }
+   }
+
+   @Override
+   public void cloneNameSet(String nameOfNameSetToClone, String newNameSetName) {
+      throwFunctionnalExceptionIfFalse(checkNameSetNameIsAvailable(newNameSetName), "name already used : " + newNameSetName);
+      throwFunctionnalExceptionIfFalse(nameSetExists(nameOfNameSetToClone), "no name list with name : " + nameOfNameSetToClone);
+      // everything should be ok to clone a name set
+      NameSet nameSetToClone = findNameSetByName(nameOfNameSetToClone);
+      PersistenceManager persistenceManager = getPersistenceManager();
+      try {
+         NameSet clone = createNameSet(newNameSetName);
+         clone.getNames().addAll(nameSetToClone.getNames());
          persistenceManager.makePersistent(clone);
       } finally {
          persistenceManager.close();
