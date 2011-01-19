@@ -5,10 +5,6 @@ import java.util.List;
 import zorglux.inominax.client.callback.BasicCallback;
 import zorglux.inominax.shared.TokenSet;
 
-import com.extjs.gxt.ui.client.event.Listener;
-import com.extjs.gxt.ui.client.event.MessageBoxEvent;
-import com.extjs.gxt.ui.client.widget.Info;
-import com.extjs.gxt.ui.client.widget.MessageBox;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Window;
@@ -213,8 +209,8 @@ public class TokenSetManagementDialogBox extends DialogBox {
             while (!source.getParent().getClass().equals(TokenSetManagementDialogBox.class)) {
                source = source.getParent();
             }
-            TokenSetManagementDialogBox newTokenSetDialogBox = (TokenSetManagementDialogBox) source.getParent();
-            newTokenSetDialogBox.hide();
+            TokenSetManagementDialogBox tokenSetMaangementDialogBox = (TokenSetManagementDialogBox) source.getParent();
+            tokenSetMaangementDialogBox.hide();
          }
       });
       exitButton.setText("Exit");
@@ -279,7 +275,6 @@ public class TokenSetManagementDialogBox extends DialogBox {
             }
          }
       };
-      // call inominaxService
       inominaxService.getTokenSetsNames(getTokenSetsNamesCallback);
    }
 

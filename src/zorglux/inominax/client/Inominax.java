@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import zorglux.inominax.exception.FunctionnalException;
+import zorglux.inominax.client.callback.BasicCallback;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
@@ -19,7 +19,6 @@ import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CaptionPanel;
@@ -82,7 +81,7 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
    private final Label generateLabel = new Label("Generate");
    private final VerticalPanel nameGenerationParamsPanel = new VerticalPanel();
    private final CaptionPanel nameGenerationParamsCaptionPanel = new CaptionPanel("Name generation params");
-   private final Label addSelectedNamesLabel = new Label("Add selected names to ");
+   private final Label addSelectedNamesLabel = new Label("Add selected names to list ");
    private final HorizontalPanel addSelectedNamesPanel = new HorizontalPanel();
    private final ListBox addGeneratedNamesToUserNamesComboBox = new ListBox();
    private final Button addGeneratedNamesToUserListNamesButton = new Button("New button");
@@ -350,6 +349,12 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       addSelectedNamesPanel.add(addGeneratedNamesToUserNamesComboBox);
       addSelectedNamesPanel.setCellVerticalAlignment(addGeneratedNamesToUserNamesComboBox, HasVerticalAlignment.ALIGN_MIDDLE);
       addGeneratedNamesToUserNamesComboBox.setWidth("100%");
+      addGeneratedNamesToUserListNamesButton.addClickHandler(new ClickHandler() {
+         @Override
+         public void onClick(ClickEvent event) {
+            addSelectedGeneratedNamesToNameList();
+         }
+      });
       addGeneratedNamesToUserListNamesButton.setText("Add");
 
       addSelectedNamesPanel.add(addGeneratedNamesToUserListNamesButton);
@@ -383,6 +388,12 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
 
       addNamePanel.add(newNameTextBox);
       newNameTextBox.setSize("8em", "");
+      addNameButton.addClickHandler(new ClickHandler() {
+         @Override
+         public void onClick(ClickEvent event) {
+            addName();
+         }
+      });
 
       addNamePanel.add(addNameButton);
       addNameButton.setSize("3em", "25px");
@@ -400,7 +411,19 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
 
       userNamesPanel.add(removeSelectedNamesButton);
       removeSelectedNamesButton.setWidth("11em");
-      manageNameSetButton.setText("Manage list of tokens");
+      manageNameSetButton.setText("Manage list of names");
+      manageNameSetButton.addClickHandler(new ClickHandler() {
+         private NameSetManagementDialogBox nameSetManagementDialogBox;
+
+         @Override
+         public void onClick(ClickEvent event) {
+            nameSetManagementDialogBox = new NameSetManagementDialogBox(inominaxService);
+            nameSetManagementDialogBox.addCloseHandler(me);
+            nameSetManagementDialogBox.center();
+            nameSetManagementDialogBox.show();
+            nameSetManagementDialogBox.focusNewNameSetTextBox();
+         }
+      });
 
       userNamesPanel.add(manageNameSetButton);
       manageNameSetButton.setWidth("11em");
@@ -410,21 +433,12 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
    private void addToken() {
       final String newToken = newTokenTextBox.getText().trim();
 
-      // Set up the callback object.
-      AsyncCallback<Void> addToTokenSetCallback = new AsyncCallback<Void>() {
+      AsyncCallback<Void> addToTokenSetCallback = new BasicCallback<Void>() {
          @Override
-         public void onFailure(Throwable caught) {
-            if (caught instanceof FunctionnalException) {
-               Window.alert(caught.getMessage());
-            }
-
-         }
-         @Override
-         public void onSuccess(Void result) {
+         public void onResult(Void result) {
             loadTokensOfSelectedTokenSet();
          }
       };
-      // call inominaxService
       inominaxService.addToTokenSet(selectedTokenSet(), new String[] { newToken }, addToTokenSetCallback);
       newTokenTextBox.setFocus(true);
    }
@@ -446,22 +460,13 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       }
       GWT.log("selectedTokens=" + selectedTokens);
 
-      // Set up the callback object.
-      AsyncCallback<Void> removeFromTokenSetCallback = new AsyncCallback<Void>() {
+      AsyncCallback<Void> removeFromTokenSetCallback = new BasicCallback<Void>() {
          @Override
-         public void onFailure(Throwable caught) {
-            if (caught instanceof FunctionnalException) {
-               Window.alert(caught.getMessage());
-            }
-
-         }
-         @Override
-         public void onSuccess(Void result) {
+         public void onResult(Void result) {
             // refresh current token set
             loadTokensOf(selectedTokensSetName);
          }
       };
-      // call inominaxService
       inominaxService.removeFromTokenSet(selectedTokensSetName, selectedTokens.toArray(new String[0]), removeFromTokenSetCallback);
    }
 
@@ -469,18 +474,11 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       return tokenSetDropBox.getValue(tokenSetDropBox.getSelectedIndex());
    }
 
-   public void loadTokensSetDropBox() {
+   private void loadTokensSetDropBox() {
       GWT.log("initializing getTokenSetsNamesCallback");
-      // Set up the callback object.
-      AsyncCallback<List<String>> getTokenSetsNamesCallback = new AsyncCallback<List<String>>() {
+      AsyncCallback<List<String>> getTokenSetsNamesCallback = new BasicCallback<List<String>>() {
          @Override
-         public void onFailure(Throwable caught) {
-            if (caught instanceof FunctionnalException) {
-               Window.alert(caught.getMessage());
-            }
-         }
-         @Override
-         public void onSuccess(List<String> tokenSetsNames) {
+         public void onResult(List<String> tokenSetsNames) {
             tokenSetDropBox.clear();
             for (String tokenSetName : tokenSetsNames) {
                tokenSetDropBox.addItem(tokenSetName);
@@ -488,55 +486,44 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
             loadTokensOfSelectedTokenSet();
          }
       };
-      // call inominaxService
       inominaxService.getTokenSetsNames(getTokenSetsNamesCallback);
    }
 
    private void loadTokensOf(String tokenSetName) {
       // Set up the callback object.
-      AsyncCallback<Set<String>> loadTokensOfCallback = new AsyncCallback<Set<String>>() {
+      AsyncCallback<Set<String>> loadTokensOfCallback = new BasicCallback<Set<String>>() {
          @Override
-         public void onFailure(Throwable caught) {
-            if (caught instanceof FunctionnalException) {
-               Window.alert(caught.getMessage());
-            }
-         }
-         @Override
-         public void onSuccess(Set<String> tokens) {
+         public void onResult(Set<String> tokens) {
             tokensListBox.clear();
             for (String token : tokens) {
                tokensListBox.addItem(token);
             }
          }
       };
-      // call inominaxService
       inominaxService.getTokensOfSet(tokenSetName, loadTokensOfCallback);
    }
 
    @Override
    public void onClose(CloseEvent<PopupPanel> event) {
-      // only one popup : newTokenSetDialogBox, thus we know what to do.
-      loadTokensSetDropBox();
+      // identify from wich popup comes the event
+      if (event.getTarget() instanceof TokenSetManagementDialogBox) {
+         // we suppose some changes have been made on TokenSet => reload them
+         loadTokensSetDropBox();
+      } else if (event.getTarget() instanceof NameSetManagementDialogBox) {
+         // we suppose some changes have been made on NameSet => reload them
+         loadNamesSetDropBox();
+      }
    }
 
    private void addName() {
       final String newName = newNameTextBox.getText().trim();
 
-      // Set up the callback object.
-      AsyncCallback<Void> addToNameSetCallback = new AsyncCallback<Void>() {
+      AsyncCallback<Void> addToNameSetCallback = new BasicCallback<Void>() {
          @Override
-         public void onFailure(Throwable caught) {
-            if (caught instanceof FunctionnalException) {
-               Window.alert(caught.getMessage());
-            }
-
-         }
-         @Override
-         public void onSuccess(Void result) {
+         public void onResult(Void result) {
             loadNamesOfSelectedNameSet();
          }
       };
-      // call inominaxService
       inominaxService.addToNameSet(selectedNameSet(), new String[] { newName }, addToNameSetCallback);
       newNameTextBox.setFocus(true);
    }
@@ -559,16 +546,9 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       GWT.log("selectedNames=" + selectedNames);
 
       // Set up the callback object.
-      AsyncCallback<Void> removeFromNameSetCallback = new AsyncCallback<Void>() {
+      AsyncCallback<Void> removeFromNameSetCallback = new BasicCallback<Void>() {
          @Override
-         public void onFailure(Throwable caught) {
-            if (caught instanceof FunctionnalException) {
-               Window.alert(caught.getMessage());
-            }
-
-         }
-         @Override
-         public void onSuccess(Void result) {
+         public void onResult(Void result) {
             // refresh current name set
             loadNamesOf(selectedNamesSetName);
          }
@@ -581,22 +561,12 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       return nameSetDropBox.getValue(nameSetDropBox.getSelectedIndex());
    }
 
-   private String selectedNameSetForAddingGeneratedNames() {
-      return nameSetDropBox.getValue(nameSetDropBox.getSelectedIndex());
-   }
-
-   public void loadNamesSetDropBox() {
+   private void loadNamesSetDropBox() {
       GWT.log("initializing getNameSetsNamesCallback");
       // Set up the callback object.
-      AsyncCallback<List<String>> getNameSetsNamesCallback = new AsyncCallback<List<String>>() {
+      AsyncCallback<List<String>> getNameSetsNamesCallback = new BasicCallback<List<String>>() {
          @Override
-         public void onFailure(Throwable caught) {
-            if (caught instanceof FunctionnalException) {
-               Window.alert(caught.getMessage());
-            }
-         }
-         @Override
-         public void onSuccess(List<String> nameSetsNames) {
+         public void onResult(List<String> nameSetsNames) {
             nameSetDropBox.clear();
             addGeneratedNamesToUserNamesComboBox.clear();
             for (String nameSetName : nameSetsNames) {
@@ -612,15 +582,9 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
 
    private void loadNamesOf(String nameSetName) {
       // Set up the callback object.
-      AsyncCallback<Set<String>> loadNamesOfCallback = new AsyncCallback<Set<String>>() {
+      AsyncCallback<Set<String>> loadNamesOfCallback = new BasicCallback<Set<String>>() {
          @Override
-         public void onFailure(Throwable caught) {
-            if (caught instanceof FunctionnalException) {
-               Window.alert(caught.getMessage());
-            }
-         }
-         @Override
-         public void onSuccess(Set<String> names) {
+         public void onResult(Set<String> names) {
             namesListBox.clear();
             for (String name : names) {
                namesListBox.addItem(name);
@@ -629,6 +593,36 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       };
       // call inominaxService
       inominaxService.getNamesOfSet(nameSetName, loadNamesOfCallback);
+   }
+
+   private void addSelectedGeneratedNamesToNameList() {
+      final String selectedNameSetForAddingGeneratedNames = selectedNameSetForAddingGeneratedNames();
+      List<String> selectedGeneratedNames = new ArrayList<String>();
+      // get generated names of first list box
+      for (int i = 0; i < generatedNamesListBox1.getItemCount(); i++) {
+         if (generatedNamesListBox1.isItemSelected(i)) {
+            selectedGeneratedNames.add(generatedNamesListBox1.getValue(i));
+         }
+      }
+      // get generated names of second list box
+      for (int i = 0; i < generatedNamesListBox2.getItemCount(); i++) {
+         if (generatedNamesListBox2.isItemSelected(i)) {
+            selectedGeneratedNames.add(generatedNamesListBox2.getValue(i));
+         }
+      }
+      GWT.log("selectedNames=" + selectedGeneratedNames);
+      AsyncCallback<Void> addToNameSetCallback = new BasicCallback<Void>() {
+         @Override
+         public void onResult(Void result) {
+            // refresh current name set
+            loadNamesOf(selectedNameSetForAddingGeneratedNames);
+         }
+      };
+      inominaxService.addToNameSet(selectedNameSetForAddingGeneratedNames, selectedGeneratedNames.toArray(new String[0]), addToNameSetCallback);
+   }
+
+   private String selectedNameSetForAddingGeneratedNames() {
+      return addGeneratedNamesToUserNamesComboBox.getValue(addGeneratedNamesToUserNamesComboBox.getSelectedIndex());
    }
 
 }
