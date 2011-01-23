@@ -1,91 +1,68 @@
-/** Add css rules here for your application. */
+/** loading styles 
+	border: 1px solid #ccc;
+*/
+#loading {
+	position: absolute;
+	left: 45%;
+	top: 40%;
+	padding: 2px;
+	margin-left: -45px;
+	z-index: 20001;
+	border: 1px solid #ccc;
+}
 
+#loading .loading-indicator {
+	background: #eef;
+	font: bold 13px tahoma, arial, helvetica;
+	padding: 10px;
+	margin: 0;
+	height: auto;
+	color: #444;
+}
+
+#loading .loading-indicator img {
+	margin-right: 8px;
+	float: left;
+	vertical-align: top;
+}
+
+#loading-msg {
+	font: normal 10px arial, tahoma, sans-serif;
+}
 
 /** Example rules used by the template application (remove for your app) */
 h1 {
-  font-size: 2em;
-  font-weight: bold;
-  color: #777777;
-  margin: 40px 0px 70px;
-  text-align: center;
+	font-size: 30px;
+	font-weight: bold;
+	color: #000000;
+	margin: 50px 0px 70px;
+	text-align: center;
 }
 
 .sendButton {
-  display: block;
-  font-size: 16pt;
+	display: block;
+	font-size: 16pt;
 }
 
 /** Most GWT widgets already have a style name defined */
 .gwt-DialogBox {
+	
 }
 
 .dialogVPanel {
-  margin: 5px;
-}
-
-.serverResponseLabelError {
-  color: red;
+	margin: 5px;
 }
 
 /** Set ids using widget.getElement().setId("idOfElement") */
 #closeButton {
-  margin: 15px 6px 6px;
+	margin: 15px 6px 6px;
 }
 
 /* Formatting specific to the StockWatcher application */
-
 body {
-  padding: 10px;
-}
-
-/* stock list header row */
-.watchListHeader {
-  background-color: #2062B8;
-  color: white;
-  font-style: italic;
-}
-
-/* stock list flex table */
-.watchList {
-  border: 1px solid silver;
-  padding: 2px;
-  margin-bottom:6px;
-}
-
-/* stock list Price and Change fields */
-.watchListNumericColumn {
-  text-align: right;
-  width:8em;
-}
-
-/* stock list Remove column */
-.watchListRemoveColumn {
-  text-align: center;
-}
-
-/* Add Stock panel */
-.addPanel {
-  margin: 10px 0px 15px 0px;
-}
-
-/* stock list, the Remove button */
-.gwt-Button-remove {
-  width: 50px;
-}
-
-/* Dynamic color changes for the Change field */
-.noChange {
-  color: black;
-}
-
-.positiveChange {
-  color: green;
-}
-
-.negativeChange {
-  color: red;
+	padding: 10px;
 }
 
 .errorMessage {
-  color: red;
+	color: red;
 }

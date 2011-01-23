@@ -19,6 +19,8 @@ import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CaptionPanel;
@@ -104,11 +106,15 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
 
       RootPanel rootPanel = RootPanel.get();
       rootPanel.setSize("800px", "700px");
-      GWT.log(rootPanel.toString(), null);
+      GWT.log(rootPanel.toString());
+      //
+      updateLoadingIndicatorMessage(0);
+
       // load token sets name
       loadTokensSetDropBox();
       loadNamesSetDropBox();
 
+      updateLoadingIndicatorMessage(25);
       htmlMyTokens.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
 
       mainPanel.setWidget(0, 0, htmlMyTokens);
@@ -283,6 +289,9 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       endsWithLabel.setWidth("");
       startsWithTokenPanel.add(endsWithTextBox);
       endsWithTextBox.setWidth(STARTS_ENDS_CONTAINS_SIZE);
+
+      updateLoadingIndicatorMessage(50);
+
       nameGeneratorPanel.add(generateNamesButton);
       nameGeneratorPanel.setCellVerticalAlignment(generateNamesButton, HasVerticalAlignment.ALIGN_MIDDLE);
       nameGeneratorPanel.setCellHeight(generateNamesButton, "40");
@@ -366,8 +375,12 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       // Associate the Main panel with the HTML host page.
       RootPanel.get("inominaX").add(mainPanel);
       mainPanel.setWidth("100pct");
+
+      updateLoadingIndicatorMessage(75);
+
       userNamesPanel.setSpacing(4);
       userNamesPanel.setWidth("13em");
+      chooseNameSetLabel.setStyleName("h1");
 
       userNamesPanel.add(chooseNameSetLabel);
       chooseNameSetLabel.setWidth("");
@@ -428,6 +441,23 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       userNamesPanel.add(manageNameSetButton);
       manageNameSetButton.setWidth("11em");
       mainPanel.getCellFormatter().setVerticalAlignment(1, 1, HasVerticalAlignment.ALIGN_TOP);
+
+      updateLoadingIndicatorMessage(100);
+      hideLoadingIndicator();
+   }
+
+   private void hideLoadingIndicator() {
+      Element loading = DOM.getElementById("loading");
+      DOM.setInnerHTML(loading, "");
+      // RootPanel.get("loading").getElement().setInnerHTML("");
+      RootPanel.getBodyElement().removeChild(loading);
+   }
+
+   private void updateLoadingIndicatorMessage(int percent) {
+      // String loadingMessage = "Loading ... " + percent + "% done";
+      // Element loadingMessageElement = DOM.getElementById("loading-msg");
+      // loadingMessageElement.setInnerHTML(loadingMessage);
+      // GWT.log("after update " + loadingMessageElement.getInnerHTML());
    }
 
    private void addToken() {
