@@ -2,6 +2,7 @@ package zorglux.inominax.client;
 
 import static java.lang.Math.random;
 import static java.lang.Math.round;
+import static zorglux.inominax.exception.FunctionnalException.throwFunctionnalExceptionIfFalse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,13 +22,17 @@ public class NameGenerator {
 
    public NameGenerator(int minNumberOfTokensInName, int maxNumberOfTokensInName, List<String> tokens) {
       super();
+      checkMinMaxCoherence(minNumberOfTokensInName, maxNumberOfTokensInName);
       setMinNumberOfTokensInName(minNumberOfTokensInName);
       this.maxNumberOfTokensInName = maxNumberOfTokensInName;
       this.tokens = tokens;
    }
 
-   public NameGenerator() {
+   private void checkMinMaxCoherence(int min, int max) {
+      throwFunctionnalExceptionIfFalse(min < max, "min number of tokens (" + min + ") > max number of tokens (" + max + ") !");
    }
+
+   public NameGenerator() {}
 
    public String generateName() {
       String generatedName = "";
@@ -36,16 +41,12 @@ public class NameGenerator {
          numberOfRandomTokensInName--;
          generatedName = generatedNameStart;
       }
-      if (numberOfRandomTokensInName == 0) {
-         return uppercaseFirstLetter(generatedName);
-      }
+      if (numberOfRandomTokensInName == 0) { return uppercaseFirstLetter(generatedName); }
 
       if (endOfGeneratedNameIsSet()) {
          numberOfRandomTokensInName--;
       }
-      if (numberOfRandomTokensInName == 0) {
-         return uppercaseFirstLetter(generatedName + generatedNameEnd);
-      }
+      if (numberOfRandomTokensInName == 0) { return uppercaseFirstLetter(generatedName + generatedNameEnd); }
 
       // we have at least one token to define.
       int indexOfMandatoryString = 0;

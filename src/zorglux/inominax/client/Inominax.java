@@ -1,10 +1,12 @@
 package zorglux.inominax.client;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import zorglux.inominax.client.callback.BasicCallback;
+import zorglux.inominax.exception.FunctionnalException;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
@@ -21,6 +23,7 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Element;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CaptionPanel;
@@ -107,14 +110,11 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       RootPanel rootPanel = RootPanel.get();
       rootPanel.setSize("800px", "700px");
       GWT.log(rootPanel.toString());
-      //
-      updateLoadingIndicatorMessage(0);
 
       // load token sets name
       loadTokensSetDropBox();
       loadNamesSetDropBox();
 
-      updateLoadingIndicatorMessage(25);
       htmlMyTokens.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
 
       mainPanel.setWidget(0, 0, htmlMyTokens);
@@ -290,8 +290,6 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       startsWithTokenPanel.add(endsWithTextBox);
       endsWithTextBox.setWidth(STARTS_ENDS_CONTAINS_SIZE);
 
-      updateLoadingIndicatorMessage(50);
-
       nameGeneratorPanel.add(generateNamesButton);
       nameGeneratorPanel.setCellVerticalAlignment(generateNamesButton, HasVerticalAlignment.ALIGN_MIDDLE);
       nameGeneratorPanel.setCellHeight(generateNamesButton, "40");
@@ -303,17 +301,7 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
             for (int i = 0; i < tokensListBox.getItemCount(); i++) {
                tokens.add(tokensListBox.getValue(i));
             }
-            NameGenerator nameGenerator = new NameGenerator(minTokensBox.getValue(), maxTokensBox.getValue(), tokens);
-            if (!startsWithTextBox.getValue().isEmpty()) {
-               nameGenerator.generatedNameMustStartsWith(startsWithTextBox.getValue());
-            }
-            if (!endsWithTextBox.getValue().isEmpty()) {
-               nameGenerator.generatedNameMustEndWith(endsWithTextBox.getValue());
-            }
-            if (!containsTextBox.getValue().isEmpty()) {
-               nameGenerator.generatedNameMustContain(containsTextBox.getValue());
-            }
-            Set<String> generatedNames = nameGenerator.generateNames(numberOfNamesToGenerateBox.getValue());
+            Set<String> generatedNames = generateNames(tokens);
             generatedNamesListBox1.clear();
             generatedNamesListBox2.clear();
             int i = 0;
@@ -324,6 +312,26 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
                   generatedNamesListBox2.addItem(generatedName, generatedName);
                }
                i++;
+            }
+         }
+
+         private Set<String> generateNames(List<String> tokens) {
+            try {
+               NameGenerator nameGenerator = new NameGenerator(minTokensBox.getValue(), maxTokensBox.getValue(), tokens);
+               if (!startsWithTextBox.getValue().isEmpty()) {
+                  nameGenerator.generatedNameMustStartsWith(startsWithTextBox.getValue());
+               }
+               if (!endsWithTextBox.getValue().isEmpty()) {
+                  nameGenerator.generatedNameMustEndWith(endsWithTextBox.getValue());
+               }
+               if (!containsTextBox.getValue().isEmpty()) {
+                  nameGenerator.generatedNameMustContain(containsTextBox.getValue());
+               }
+               Set<String> generatedNames = nameGenerator.generateNames(numberOfNamesToGenerateBox.getValue());
+               return generatedNames;
+            } catch (FunctionnalException e) {
+               Window.alert(e.getMessage());
+               return new HashSet<String>();
             }
          }
       });
@@ -375,8 +383,6 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       // Associate the Main panel with the HTML host page.
       RootPanel.get("inominaX").add(mainPanel);
       mainPanel.setWidth("100pct");
-
-      updateLoadingIndicatorMessage(75);
 
       userNamesPanel.setSpacing(4);
       userNamesPanel.setWidth("13em");
@@ -442,22 +448,13 @@ public class Inominax implements EntryPoint, CloseHandler<PopupPanel> {
       manageNameSetButton.setWidth("11em");
       mainPanel.getCellFormatter().setVerticalAlignment(1, 1, HasVerticalAlignment.ALIGN_TOP);
 
-      updateLoadingIndicatorMessage(100);
       hideLoadingIndicator();
    }
 
    private void hideLoadingIndicator() {
       Element loading = DOM.getElementById("loading");
       DOM.setInnerHTML(loading, "");
-      // RootPanel.get("loading").getElement().setInnerHTML("");
       RootPanel.getBodyElement().removeChild(loading);
-   }
-
-   private void updateLoadingIndicatorMessage(int percent) {
-      // String loadingMessage = "Loading ... " + percent + "% done";
-      // Element loadingMessageElement = DOM.getElementById("loading-msg");
-      // loadingMessageElement.setInnerHTML(loadingMessage);
-      // GWT.log("after update " + loadingMessageElement.getInnerHTML());
    }
 
    private void addToken() {
