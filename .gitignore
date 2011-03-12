@@ -4,3 +4,4 @@ war/inominax/**
 test-classes
 war/WEB-INF/appengine-generated/local_db.bin
 /.classpath
+war/WEB-INF/deploy/*
